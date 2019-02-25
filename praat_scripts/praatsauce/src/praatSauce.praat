@@ -44,16 +44,16 @@ clearinfo
 
 form Directory and measures
     comment Input directory and results file
-    sentence inputdir /Users/jkirby/Documents/Projects/praatsauce/comp/madurese/
-    sentence textgriddir /Users/jkirby/Documents/Projects/praatsauce/comp/madurese/
-    sentence outputdir /Users/jkirby/Documents/Projects/praatsauce/comp/
+    sentence inputdir /home/cj/ling/QP2/audio/
+    sentence textgriddir /home/cj/ling/QP2/audio/
+    sentence outputdir /home/cj/ling/QP2/data/
     sentence outputfile spectral_measures.txt
     comment If measuring in sessions, use this parameter to pick up where you left off:
     natural startToken 1
     comment Which is your interval tier?
     natural interval_tier 2
     comment Enter interval labels you don't want to process as a well-formed regex:
-    sentence skip_these_labels ^$|^\s+$|r
+    sentence skip_these_labels ^$|^\s+$|r|^[BCDFGHJKLMNPQRSTVWXYZ]+$|sp
     comment Which is your point tier? (Enter 0 if you aren't using a point tier)
     integer point_tier 0
     comment If using a point tier: enter the labels of interest, separated by spaces:
