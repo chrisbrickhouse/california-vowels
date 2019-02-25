@@ -1,0 +1,14 @@
+0.2.4 (17-08-2018)
+
+- added shellSauce.praat script to permit easy shell scripting
+
+0.2.3 (16-02-2018)
+
+- added option to output point tier point time
+
+0.2.2 (05-01-2018)
+
+- added 16 KHz resampling option
+- added Hawks and Miller bandwidth estimation formula method
+- added regex-based support for excluding intervals, including blank intervals
+- outputs formant bandwidths and amplitude differences
