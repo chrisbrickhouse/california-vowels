@@ -55,3 +55,29 @@ plot_spline <- function(model,sites,ylab,xlab="Index",a=0.4) {
     labs(y=ylab,x=xlab,col="Vowel")+
     facet_wrap(~sex*site,labeller=labeller(site=sites,sex=sexes,segment=segment_labs))
 }
+
+load_sauce <- function(fname) {
+  sauce = read_csv(fname)
+}
+
+# To Norm Data
+make_norm <- function(sauce) {
+  dt = sauce %>%
+    group_by(var2,var3,Label) %>%
+    mutate(
+      speaker_id=paste(var1,var2,var3,sep="_"),
+      segment=Label,
+      context="",
+      F1=mean(F1),
+      F2=mean(F2),
+      F3=mean(F3),
+      F1_glide=as.numeric(NA),
+      F2_glide=as.numeric(NA),
+      F3_glide=as.numeric(NA)) %>%
+    ungroup()%>%
+    select(speaker_id,segment,context,F1,F2,F3,F1_glide,F2_glide,F3_glide) %>%
+    distinct()
+  dt_frame = as.data.frame(dt)
+  nrm = norm.nearey(dt_frame)
+  return(nrm)
+}
