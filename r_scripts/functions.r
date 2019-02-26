@@ -90,8 +90,10 @@ make_norm <- function(sauce,rm.na=TRUE) {
     group_by(var2,var3,Label) %>%
     mutate(
       speaker_id=paste(var1,var2,var3,sep="_"),
-      segment=get_class(Label,var6),
-      context=var6,
+      segment=get_class(Label,var6)) %>%
+    ungroup()%>%
+    group_by(speaker_id,segment)%>%
+    mutate(context=var6,
       F1=mean(F1),
       F2=mean(F2),
       F3=mean(F3),

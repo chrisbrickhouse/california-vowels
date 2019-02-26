@@ -15,12 +15,12 @@ data.formant$segment = as.factor(data.formant$segment)
 
 # Vowel space plot
 ggplot(data.normed,aes(x=nF2,y=nF1,color=Vowel,label=Vowel)) +
+  #geom_text() + # uncomment to have vowels labelled with words
   geom_point() +
   scale_y_reverse(position = "right") + 
   scale_x_reverse(position = "top") +
   geom_density_2d()
 
-# Formant Track plot
 ggplot(data.formant,aes(x=index,group=token,color=segment)) +
   geom_line(aes(y=f1_bark)) +
   geom_line(aes(y=f2_bark)) +
