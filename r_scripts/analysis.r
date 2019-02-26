@@ -1,36 +1,13 @@
+setwd('/home/cj/Desktop/Linguistics/QP2/')
 library(tidyverse)
 library(vowels)  # Not actually used yet
 library(gss)
 source('./r_scripts/functions.r')
 
 # Load Data
-### Data locations
-setwd('/home/cj/Desktop/Linguistics/QP2/')
-paths <- c(
-  bot = c(
-    men = c(
-      sac = './data/SAC_bot_men.csv',
-      sal = './data/SAL_bot_men.csv'
-    ),
-    women = c(
-      sac = './data/SAC_bot_women.csv',
-      sal = './data/SAL_bot_women.csv'
-    )
-  ),
-  bought = c(
-    men = c(
-      sac = './data/SAC_bought_men.csv',
-      sal = './data/SAL_bought_men.csv'
-    ),
-    women = c(
-      sac = './data/SAC_bought_women.csv',
-      sal = './data/SAL_bought_women.csv'
-    )
-  )
-)
-
 data.sauce = load_sauce('./data/sac_spectral_measures.txt')
-data.normed = make_norm(sauce)
+data.normed = make_norm(data.sauce)
+data.cleansauce = clean_sauce(data.sauce)
 
 data.formant = load_data(paths)
 data.formant$site = as.factor(data.formant$site)

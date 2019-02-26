@@ -1,3 +1,27 @@
+# Data locations
+paths <- c(
+  bot = c(
+    men = c(
+      sac = './data/SAC_bot_men.csv',
+      sal = './data/SAL_bot_men.csv'
+    ),
+    women = c(
+      sac = './data/SAC_bot_women.csv',
+      sal = './data/SAL_bot_women.csv'
+    )
+  ),
+  bought = c(
+    men = c(
+      sac = './data/SAC_bought_men.csv',
+      sal = './data/SAL_bought_men.csv'
+    ),
+    women = c(
+      sac = './data/SAC_bought_women.csv',
+      sal = './data/SAL_bought_women.csv'
+    )
+  )
+)
+
 # Load data when given a list of paths and return that data.
 #   Calls the recursive bind function to bind them all together.
 load_data <- function(l) {
@@ -259,4 +283,28 @@ get_class <- function(segment,token,debug="") {
     }
   }
   return(class)
+}
+
+clean_sauce <- function(sauce) {
+  dt = sauce %>%
+    mutate(dur=seg_End-seg_Start,logdur=log(seg_End-seg_Start)) %>%
+    select(
+      site=var1,
+      last=var2,
+      first=var3,
+      token=var6,
+      segment=Label,
+      dur,
+      logdur,
+      index=t,
+      f0,
+      F1,
+      F2,
+      F3,
+      B3,
+      H1c,
+      H2c,
+      H1H2c,
+      CPP)
+  return(dt)
 }
