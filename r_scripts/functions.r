@@ -310,3 +310,23 @@ clean_sauce <- function(sauce) {
       CPP)
   return(dt)
 }
+
+lowest_vowel <- function(x) {
+  
+  lv = x %>%
+    group_by(Speaker) %>%
+    filter(!Vowel %in% c("BOT","BOUGHT")) %>%
+    filter(nF1 == max(nF1))
+  return(lv)
+}
+
+high_back_vowel <- function(x) {
+  # This function finds the highest and backest vowel that is not BOT/BOUGHT
+  # It takes normed data
+  hbv = x %>%
+    group_by(Speaker) %>%
+    filter(!Vowel %in% c("BOT","BOUGHT")) %>%
+    mutate(oDist = sqrt(nF1**2 + nF2**2)) %>%
+    filter(oDist == min(oDist))
+  return(hbv)
+}
