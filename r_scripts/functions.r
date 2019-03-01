@@ -312,11 +312,13 @@ clean_sauce <- function(sauce) {
 }
 
 lowest_vowel <- function(x) {
-  
+  # This function finds the highest and backest vowel that is not BOT/BOUGHT
+  # It takes normed data
   lv = x %>%
     group_by(Speaker) %>%
     filter(!Vowel %in% c("BOT","BOUGHT")) %>%
-    filter(nF1 == max(nF1))
+    filter(nF1 == max(nF1)) %>%
+    mutate(pos="low")
   return(lv)
 }
 
@@ -325,8 +327,36 @@ high_back_vowel <- function(x) {
   # It takes normed data
   hbv = x %>%
     group_by(Speaker) %>%
-    filter(!Vowel %in% c("BOT","BOUGHT")) %>%
-    mutate(oDist = sqrt(nF1**2 + nF2**2)) %>%
-    filter(oDist == min(oDist))
+    filter(Vowel %in% c("BOAT","POOL")) %>%
+    mutate(oDist = nF1^2+nF2^2) %>%
+    filter(!oDist > min(oDist)) %>%
+    mutate(pos="high")
   return(hbv)
+}
+
+cosdist <- function(a,b) {
+  num = sum(a*b)
+  denom = mag(a)*mag(b)
+  cd = num/denom
+  return(cd)
+}
+
+mag <- function(a) {
+  c = sqrt(sum(a^2))
+  return(c)
+}
+
+vspace_shape <- function(f1vec,f2vec,posvec) {
+  li = which(posvec=="low")
+  hi = which(posvec=="high")
+  ti = setdiff(c(1,2,3),c(li,hi))
+  anchor = c(f2vec[li],f1vec[li])
+  anchor2 = c(f2vec[hi],f1vec[hi])
+  target = c(f2vec[ti],f1vec[ti])
+  a2 = anchor2 - anchor
+  t = target - anchor
+  cd = cosdist(a2,t)
+  uv = c(1,0)
+  cdo = cosdist(uv,t)
+  return(cd/cdo)
 }
