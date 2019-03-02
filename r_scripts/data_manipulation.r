@@ -44,42 +44,6 @@ bind_rec <- function(var, i=1 , target=0) {
   return(v)
 }
 
-# Create a smoothing spline formant model.
-ssmodel <- function (
-  formula,
-  data,
-  n=50,
-  vowels=c("AA1","AO1"),
-  sites = c(
-    "SAC",
-    "SAL"
-  )) {
-  require(gss)
-  i = seq(1,n)
-  v = as.factor(vowels)
-  sex = c(1,2)
-  loc = sites
-  model = ssanova(formula,data=data)
-  model.predicted = expand.grid(index=i,segment=v,sex=sex,site=loc)
-  model.predicted$Fit <- predict(model,newdata=model.predicted, se = T)$fit
-  model.predicted$SE <- predict(model, newdata = model.predicted, se = T)$se.fit
-  return(list("model" = model, "fit" = model.predicted))
-}
-
-# Plot a model made using ssmodel.
-plot_spline <- function(model,sites,ylab,xlab="Index",a=0.4) {
-  require(ggplot2)
-  sexes=c("1"="Men","2"="Women")
-  segment_labs = c(AA1="LOT",AO1="THOUGHT")
-  p = ggplot() +
-    geom_line(data=model$fit,
-              aes(x=index,y=Fit,color=segment)) +
-    geom_ribbon(data=model$fit,
-                aes(x=index,ymin = Fit-SE, ymax = Fit+SE,group=segment),alpha=a) +
-    labs(y=ylab,x=xlab,col="Vowel")+
-    facet_wrap(~sex*site,labeller=labeller(site=sites,sex=sexes,segment=segment_labs))
-}
-
 load_sauce <- function(fname) {
   sauce = read_csv(fname)
 }
@@ -90,7 +54,7 @@ make_norm <- function(sauce,rm.na=TRUE) {
     group_by(var2,var3,Label) %>%
     mutate(
       speaker_id=paste(var1,var2,var3,sep="_"),
-      segment=get_class(Label,var6)) %>%
+      segment=.get_class(Label,var6)) %>%
     ungroup()%>%
     group_by(speaker_id,segment)%>%
     mutate(context=var6,
@@ -115,7 +79,7 @@ make_norm <- function(sauce,rm.na=TRUE) {
   return(nrm)
 }
 
-get_class <- function(segment,token,debug="") {
+.get_class <- function(segment,token,debug="") {
   class_dict = c(
     make = c(
       EY1 = "BAIT",
@@ -309,93 +273,4 @@ clean_sauce <- function(sauce) {
       H1H2c,
       CPP)
   return(dt)
-}
-
-lowest_vowel <- function(x) {
-  # This function finds the highest and backest vowel that is not BOT/BOUGHT
-  # It takes normed data
-  lv = x %>%
-    group_by(Speaker) %>%
-    filter(!Vowel %in% c("BOT","BOUGHT")) %>%
-    filter(nF1 == max(nF1)) %>%
-    mutate(pos="low")
-  return(lv)
-}
-
-high_back_vowel <- function(x) {
-  # This function finds the highest and backest vowel that is not BOT/BOUGHT
-  # It takes normed data
-  hbv = x %>%
-    group_by(Speaker) %>%
-    filter(Vowel %in% c("BOAT","POOL")) %>%
-    mutate(oDist = nF1^2+nF2^2) %>%
-    filter(!oDist > min(oDist)) %>%
-    mutate(pos="high")
-  return(hbv)
-}
-
-cosdist <- function(a,b) {
-  num = sum(a*b)
-  denom = mag(a)*mag(b)
-  cd = num/denom
-  return(cd)
-}
-
-mag <- function(a) {
-  c = sqrt(sum(a^2))
-  return(c)
-}
-
-vowel_angles <- function(normed) {
-  a = bind_rows(high_back_vowel(normed),lowest_vowel(normed))
-  b = high_back_vowel(normed)
-  c = lowest_vowel(normed)
-  x = bind_rows(a,normed%>%filter(Vowel=="BOT")%>%mutate(pos="target"))
-  return(x)
-}
-
-vspace_shape <- function(f1vec,f2vec,posvec) {
-  li = which(posvec=="low")
-  hi = which(posvec=="high")
-  ti = setdiff(c(1,2,3),c(li,hi))
-  anchor = c(f2vec[li],f1vec[li])
-  anchor2 = c(f2vec[hi],f1vec[hi])
-  target = c(f2vec[ti],f1vec[ti])
-  a2 = anchor2 - anchor
-  t = target - anchor
-  cd = cosdist(a2,t)
-  uv = c(1,0)
-  cdo = cosdist(uv,t)
-  crat = cd/cdo # a value below 1 indicates more trapezoidal, above 1 indicates more triangular
-  return(crat)
-}
-
-compute_vspace <- function(normed) {
-  y = normed%>%
-    distinct(Speaker,pos,.keep_all = TRUE)%>%
-    group_by(Speaker) %>%
-    summarize(cos_ratio = vspace_shape(nF1,nF2,pos))
-  return(y)
-}
-
-plot_vangles <- function(normed,n=5) {
-  z = normed%>%
-    distinct(Speaker,pos,.keep_all = TRUE)%>%
-    group_by(Speaker) %>%
-    mutate(cF1=nF1-recenter(nF1,nF2,pos)[2],cF2=nF2-recenter(nF1,nF2,pos)[1])
-  spk = sample(unique(z$Speaker),n)
-  z = z %>%
-    filter(Speaker %in% spk)
-  ggplot(z%>%arrange(desc(pos)),aes(x=cF2,y=cF1))+
-    geom_point()+
-    geom_line(aes(color=Speaker)) +
-    #geom_text(aes(label=Vowel)) +
-    scale_y_reverse(position = "right") + 
-    scale_x_reverse(position = "top")
-}
-
-recenter <- function(f1vec,f2vec,posvec) {
-  li = which(posvec=="low")
-  anchor = c(f2vec[li],f1vec[li])
-  return(anchor)
 }

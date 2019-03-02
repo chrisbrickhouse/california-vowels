@@ -2,7 +2,8 @@ setwd('/home/cj/Desktop/Linguistics/QP2/')
 library(tidyverse)
 library(vowels)  # Not actually used yet
 library(gss)
-source('./r_scripts/functions.r')
+source('./r_scripts/analysis_functions.r')
+
 
 # Load Data
 data.sauce = load_sauce('./data/sac_spectral_measures.txt')
