@@ -39,7 +39,7 @@ plot_vangles <- function(vangle,n=5) {
     distinct(Speaker,pos,.keep_all = TRUE)%>%
     group_by(Speaker) %>%
     mutate(cF1=nF1-.recenter(nF1,nF2,pos)[2],cF2=nF2-.recenter(nF1,nF2,pos)[1])
-  spk = sample(unique(z$Speaker),n)
+  spk = sample(unique(a$Speaker),n)
   a = a %>%
     filter(Speaker %in% spk)
   ggplot(a%>%arrange(desc(pos)),aes(x=cF2,y=cF1))+
