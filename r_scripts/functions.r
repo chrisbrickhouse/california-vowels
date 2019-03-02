@@ -346,6 +346,14 @@ mag <- function(a) {
   return(c)
 }
 
+vowel_angles <- function(normed) {
+  a = bind_rows(high_back_vowel(normed),lowest_vowel(normed))
+  b = high_back_vowel(normed)
+  c = lowest_vowel(normed)
+  x = bind_rows(a,normed%>%filter(Vowel=="BOT")%>%mutate(pos="target"))
+  return(x)
+}
+
 vspace_shape <- function(f1vec,f2vec,posvec) {
   li = which(posvec=="low")
   hi = which(posvec=="high")
@@ -358,5 +366,36 @@ vspace_shape <- function(f1vec,f2vec,posvec) {
   cd = cosdist(a2,t)
   uv = c(1,0)
   cdo = cosdist(uv,t)
-  return(cd/cdo)
+  crat = cd/cdo # a value below 1 indicates more trapezoidal, above 1 indicates more triangular
+  return(crat)
+}
+
+compute_vspace <- function(normed) {
+  y = normed%>%
+    distinct(Speaker,pos,.keep_all = TRUE)%>%
+    group_by(Speaker) %>%
+    summarize(cos_ratio = vspace_shape(nF1,nF2,pos))
+  return(y)
+}
+
+plot_vangles <- function(normed,n=5) {
+  z = normed%>%
+    distinct(Speaker,pos,.keep_all = TRUE)%>%
+    group_by(Speaker) %>%
+    mutate(cF1=nF1-recenter(nF1,nF2,pos)[2],cF2=nF2-recenter(nF1,nF2,pos)[1])
+  spk = sample(unique(z$Speaker),n)
+  z = z %>%
+    filter(Speaker %in% spk)
+  ggplot(z%>%arrange(desc(pos)),aes(x=cF2,y=cF1))+
+    geom_point()+
+    geom_line(aes(color=Speaker)) +
+    #geom_text(aes(label=Vowel)) +
+    scale_y_reverse(position = "right") + 
+    scale_x_reverse(position = "top")
+}
+
+recenter <- function(f1vec,f2vec,posvec) {
+  li = which(posvec=="low")
+  anchor = c(f2vec[li],f1vec[li])
+  return(anchor)
 }

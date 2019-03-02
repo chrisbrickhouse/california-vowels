@@ -13,6 +13,9 @@ data.formant = load_data(paths)
 data.formant$site = as.factor(data.formant$site)
 data.formant$segment = as.factor(data.formant$segment)
 
+data.v_angles = vowel_angles(data.normed)
+data.cosangles = compute_vspace(data.v_angles)
+
 # Vowel space plot
 ggplot(data.normed,aes(x=nF2,y=nF1,color=Vowel,label=Vowel)) +
   #geom_text() + # uncomment to have vowels labelled with words
@@ -26,6 +29,8 @@ ggplot(data.formant,aes(x=index,group=token,color=segment)) +
   geom_line(aes(y=f2_bark)) +
   geom_line(aes(y=f3_bark)) +
   facet_wrap(~site)
+
+plot_vangles(data.v_angles)
 
 # Smoothing Spline Plot
 f1_model = ssmodel(f1_bark ~ index*segment*site*sex,data=data.formant)
