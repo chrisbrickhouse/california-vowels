@@ -9,6 +9,7 @@ source('./r_scripts/analysis_functions.r')
 data.sauce = load_sauce()
 data.normed = make_norm(data.sauce)
 data.cleansauce = clean_sauce(data.sauce)
+data.cleannormed = clean_normed(data.normed)
 
 data.formant = load_data(paths)
 data.formant$site = as.factor(data.formant$site)

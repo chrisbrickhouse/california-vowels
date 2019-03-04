@@ -286,3 +286,13 @@ clean_sauce <- function(sauce) {
       CPP)
   return(dt)
 }
+
+clean_normed <- function(normed, gl=FALSE) {
+  cn = normed %>%
+    separate(Speaker,c('site','last','first'),'_')
+  if (gl == FALSE) {
+    cn = cn %>%
+      select(site,last,first,Vowel,Context,nF1,nF2)
+  }
+  return(cn)
+}
