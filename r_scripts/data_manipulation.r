@@ -44,8 +44,20 @@ bind_rec <- function(var, i=1 , target=0) {
   return(v)
 }
 
-load_sauce <- function(fname) {
-  sauce = read_csv(fname)
+load_sauce <- function(fname=FALSE) {
+  if (fname != FALSE) {
+    sauce = read_csv(fname)
+  } else {
+    a = read_csv('./data/all/spectral_measures.txt')
+    b = read_csv('./data/all/spectral_measures_pt2.txt')
+    c = read_csv('./data/all/spectral_measures_pt3_ascii.txt') # Files in this group were in utf-16 and needed rencoding
+    d = read_csv('./data/all/spectral_measures_pt4.txt')
+    e = read_csv('./data/all/spectral_measures_pt5.txt')
+    f = read_csv('./data/all/spectral_measures_pt6.txt')
+    g = read_csv('./data/all/spectral_measures_pt7_fixed.txt') # One file in this group didn't follow the naming convention
+    sauce = bind_rows(a,bind_rows(b,bind_rows(c,bind_rows(d,bind_rows(e,bind_rows(f,g))))))
+  }
+  return(sauce)
 }
 
 # To Norm Data

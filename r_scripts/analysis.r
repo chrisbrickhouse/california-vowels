@@ -6,7 +6,7 @@ source('./r_scripts/analysis_functions.r')
 
 
 # Load Data
-data.sauce = load_sauce('./data/sac_spectral_measures.txt')
+data.sauce = load_sauce()
 data.normed = make_norm(data.sauce)
 data.cleansauce = clean_sauce(data.sauce)
 
