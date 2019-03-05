@@ -1,0 +1,2 @@
+# In Progress, do not cite
+The plots in this folder are part of a work in progress and should be considered with caution. They are likely based on incomplete data sets, and may be incorrect due to bugs, data hygiene issues, or just plain old mistakes. Because of the potential for error, they should not be cited for any reason. They are presented only as curios and to chronicle development of the project.
