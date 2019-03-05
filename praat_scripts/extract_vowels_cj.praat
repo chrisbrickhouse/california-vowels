@@ -2,11 +2,11 @@ form Find tokens and save them
    comment See header of script for details. 
 
    comment Directory of sound files
-   text sound_directory /home/cj/ling/QP2/audio/wordlists/SAC_wordlists/
+   text sound_directory /home/cj/ling/QP2/audio/wordlist_data/
    comment Directory of TextGrid files
-   text textGrid_directory /home/cj/ling/QP2/audio/wordlists/SAC_wordlists/
+   text textGrid_directory /home/cj/ling/QP2/audio/wordlist_data/
    comment Specify the folder of the resulting files:
-   text folder /home/cj/ling/QP2/audio/for_sauce/
+   text folder /home/cj/ling/QP2/audio/for_sauce_all/
  endform
 
 tier_number = 1
