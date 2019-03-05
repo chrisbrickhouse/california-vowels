@@ -62,7 +62,7 @@ mag <- function(a) {
   a2 = anchor2 - anchor
   t = target - anchor
   cd = cosdist(a2,t)
-  uv = c(1,0)
+  uv = c(-1,0)
   cdo = cosdist(uv,t)
   crat = cd/cdo # a value below 1 indicates more trapezoidal, above 1 indicates more triangular
   return(crat)
