@@ -283,7 +283,9 @@ clean_sauce <- function(sauce) {
       H1c,
       H2c,
       H1H2c,
-      CPP)
+      CPP) %>%
+    filter(!segment %in% c("sil","SIL")) %>%
+    filter(grepl("1",segment))
   return(dt)
 }
 
