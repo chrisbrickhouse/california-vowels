@@ -50,11 +50,11 @@ load_sauce <- function(fname=FALSE) {
   } else {
     a = read_csv('./data/all/spectral_measures.txt')
     b = read_csv('./data/all/spectral_measures_pt2.txt')
-    c = read_csv('./data/all/spectral_measures_pt3_ascii.txt') # Files in this group were in utf-16 and needed rencoding
+    c = read_csv('./data/all/spectral_measures_pt3.txt')
     d = read_csv('./data/all/spectral_measures_pt4.txt')
     e = read_csv('./data/all/spectral_measures_pt5.txt')
     f = read_csv('./data/all/spectral_measures_pt6.txt')
-    g = read_csv('./data/all/spectral_measures_pt7_fixed.txt') # One file in this group didn't follow the naming convention
+    g = read_csv('./data/all/spectral_measures_pt7.txt')
     sauce = bind_rows(a,bind_rows(b,bind_rows(c,bind_rows(d,bind_rows(e,bind_rows(f,g))))))
   }
   return(sauce)

@@ -6,7 +6,7 @@ source('./r_scripts/analysis_functions.r')
 
 
 # Load Data
-data.sauce = load_sauce()
+data.sauce = load_sauce('./data/all/full_data.csv')
 data.normed = make_norm(data.sauce)
 data.cleansauce = clean_sauce(data.sauce)
 data.cleannormed = clean_normed(data.normed)
@@ -40,3 +40,6 @@ f1_model = ssmodel(f1_bark ~ index*segment*site*sex,data=data.formant)
 site_labels <- c(SAC="Sacramento",SAL="Salinas")
 a = plot_spline(f1_model,site_labels,ylab="Predicted F1 (Bark)")
 print(a)
+
+# Proof that concatenation works
+all.equal(data.sauce,load_sauce())
