@@ -39,6 +39,18 @@ ratio_plot = ggplot(ratio_data,aes(x=cos_ratio)) +
 
 ggsave('angle_ratios.png',ratio_plot,device=png(),'./plots')
 
+v_plot_1 = ggplot(data.cleannormed%>%
+         filter(Vowel%in%c("BEET","BAT","POOL","BOT","BOUGHT"))%>%
+         filter(!site %in% c("RED","MER","RDL")),aes(x=nF2,y=nF1,color=Vowel,label=Vowel)) +
+  #geom_text() + # uncomment to have vowels labelled with words
+  geom_point(alpha=0.2) +
+  scale_y_reverse(position = "right") + 
+  scale_x_reverse(position = "top") +
+  geom_density_2d() +
+  facet_wrap(~site) +
+  labs(x="Normalized F2",y="Normalized F1",title="8 Mar 2019")
+ggsave('Vowel_Space_Corners.png',v_plot_1,device=png(),'./plots')
+
 spline_plot = ggplot() +
   geom_ribbon(data=m$fit,alpha=0.2,aes(x=index,ymin=Fit-SE,ymax=Fit+SE,group=segment)) +
   geom_ribbon(data=m2$fit,alpha=0.2,aes(x=index,ymin=Fit-SE,ymax=Fit+SE,group=segment)) +
