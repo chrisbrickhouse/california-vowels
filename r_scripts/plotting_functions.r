@@ -1,8 +1,8 @@
 # Create a smoothing spline formant model.
 ssmodel <- function (
   formula,
-  data,
-  n=50,
+  cleansauce,
+  n=10,
   vowels=c("AA1","AO1"),
   sites = c(
     "SAC",
@@ -10,11 +10,16 @@ ssmodel <- function (
   )) {
   require(gss)
   i = seq(1,n)
+  vowels = unique(cleansauce$segment)
+  sites = unique(cleansauce$site)
   v = as.factor(vowels)
-  sex = c(1,2)
-  loc = sites
-  model = ssanova(formula,data=data)
-  model.predicted = expand.grid(index=i,segment=v,sex=sex,site=loc)
+  loc = as.factor(sites)
+  cleansauce$segment=as.factor(cleansauce$segment)
+  cleansauce$site=as.factor(cleansauce$site)
+  cleansauce$index=as.numeric(cleansauce$index)
+  #sex = c(1,2)
+  model = ssanova(formula,data=cleansauce)
+  model.predicted = expand.grid(index=i,segment=v,site=loc)#,sex=sex)
   model.predicted$Fit <- predict(model,newdata=model.predicted, se = T)$fit
   model.predicted$SE <- predict(model, newdata = model.predicted, se = T)$se.fit
   return(list("model" = model, "fit" = model.predicted))

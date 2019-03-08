@@ -39,6 +39,17 @@ ratio_plot = ggplot(ratio_data,aes(x=cos_ratio)) +
 
 ggsave('angle_ratios.png',ratio_plot,device=png(),'./plots')
 
+spline_plot = ggplot() +
+  geom_ribbon(data=m$fit,alpha=0.2,aes(x=index,ymin=Fit-SE,ymax=Fit+SE,group=segment)) +
+  geom_ribbon(data=m2$fit,alpha=0.2,aes(x=index,ymin=Fit-SE,ymax=Fit+SE,group=segment)) +
+  geom_ribbon(data=m3$fit,alpha=0.2,aes(x=index,ymin=Fit-SE,ymax=Fit+SE,group=segment)) +
+  geom_line(data=m$fit,aes(x=index,y=Fit,linetype=segment,color="F1")) +
+  geom_line(data=m2$fit,aes(x=index,y=Fit,linetype=segment,color="F2")) +
+  geom_line(data=m3$fit,aes(x=index,y=Fit,linetype=segment,color="F3")) +
+  facet_wrap(~site) +
+  labs(y="Predicted Formant (Hz)",x="Time normalized index",title="8 Mar 2019")
+ggsave('SmoothingSpline.png',spline_plot,device=png(),'./plots')
+
 .vs_testu <- function(f1vec,f2vec,posvec,i) {
   uv = c(-1,0,'unit')
   return(as.numeric(uv[i]))

@@ -18,6 +18,18 @@ data.formant$segment = as.factor(data.formant$segment)
 data.v_angles = vowel_angles(data.normed)
 data.cosangles = compute_vspace(data.v_angles)
 
+# See number of vowels per site
+table(data.cleannormed%>%select(site,Vowel))
+
+# Smoothing Spline ANOVA models
+ssdata = data.cleansauce %>%
+  filter(segment %in% c("AO1","AA1")) %>%
+  filter(!site %in% c("RED","RDL","MER"))
+
+m = ssmodel(F1~index*segment*site,ssdata)
+m2 = ssmodel(F2~index*segment*site,ssdata)
+m3 = ssmodel(F3~index*segment*site,ssdata)
+
 # Vowel space plot
 ggplot(data.normed,aes(x=nF2,y=nF1,color=Vowel,label=Vowel)) +
   #geom_text() + # uncomment to have vowels labelled with words
