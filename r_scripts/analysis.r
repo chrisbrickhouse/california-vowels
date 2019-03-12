@@ -7,8 +7,10 @@ source('./r_scripts/analysis_functions.r')
 
 # Load Data
 data.sauce = load_sauce('./data/all/full_data.csv')
+data.saucedemo = load_sauce('./data/full_data_with_demo.csv')
 data.normed = make_norm(data.sauce)
 data.cleansauce = clean_sauce(data.sauce)
+data.cleansaucedemo = clean_sauce(data.saucedemo,T)
 data.cleannormed = clean_normed(data.normed)
 
 data.formant = load_data(paths)
@@ -30,4 +32,3 @@ ssdata = data.cleansauce %>%
 m = ssmodel(F1~index*segment*site,ssdata)
 m2 = ssmodel(F2~index*segment*site,ssdata)
 m3 = ssmodel(F3~index*segment*site,ssdata)
-

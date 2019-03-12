@@ -263,7 +263,10 @@ make_norm <- function(sauce,rm.na=TRUE) {
   return(class)
 }
 
-clean_sauce <- function(sauce) {
+clean_sauce <- function(sauce,demo=F) {
+  if (demo == T) {
+    return(clean_sauce_demo(sauce))
+  }
   dt = sauce %>%
     mutate(dur=seg_End-seg_Start,logdur=log(seg_End-seg_Start)) %>%
     select(
@@ -284,6 +287,39 @@ clean_sauce <- function(sauce) {
       H2c,
       H1H2c,
       CPP) %>%
+    filter(!segment %in% c("sil","SIL")) %>%
+    filter(grepl("1",segment))
+  return(dt)
+}
+
+clean_sauce_demo <- function(sauce) {
+  dt = sauce %>%
+    mutate(dur=seg_End-seg_Start,logdur=log(seg_End-seg_Start)) %>%
+    select(
+      site=var1,
+      last=var2,
+      first=var3,
+      token=var6,
+      segment=Label,
+      dur,
+      logdur,
+      index=t,
+      f0,
+      F1,
+      F2,
+      F3,
+      B3,
+      H1c,
+      H2c,
+      H1H2c,
+      CPP,
+      gender="Sex (up to 2018) Gender (2019-)",
+      birthyear="Birth Year",
+      race="Race and/or ethnicity",
+      sexual_orientation="Sexual orientation",
+      education="Education",
+      town_orientation="Town/County Orientation",
+      politics="Political Orientation") %>%
     filter(!segment %in% c("sil","SIL")) %>%
     filter(grepl("1",segment))
   return(dt)
