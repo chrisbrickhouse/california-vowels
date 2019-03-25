@@ -1,0 +1,35 @@
+---
+title: "Low-Back Merger in California English: Working Paper"
+author: "Christian Brickhouse"
+date: "March 25, 2019"
+output:
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+setwd('../')
+library(tidyverse)
+library(vowels)  # Not actually used yet
+library(gss)
+source('./r_scripts/analysis_functions.r')
+data.sauce.demo = load_sauce('./data/full_data_with_demo.csv')
+data.normed = make_norm(data.sauce.demo)
+data.clean.sauce.demo = clean_sauce(data.sauce.demo,T)
+data.clean.normed.demo = merge_demo(data.normed,data.clean.sauce.demo)
+```
+
+## Caveat
+This draft represents a work in progress and therefore **you should not cite this work for any reason**. The analysis is still ongoing and so this document will change substantially and without notice. Further work may demonstrate significant errors in present or past texts, and so readers should be aware that this analysis is subject to change as more work is done. This document is not intended as a scholarly publication but as living documentation of the ongoing analysis.
+
+## Methods
+Data were collected as part of the Voices of California project which conducts sociolinguistic interviews with life-long California residents. At the end of the interview, participants are asked to read a wordlist to ensure that vowels of itnerest are captured. This study analyzes that word list data from `r length(unique(data.clean.normed.demo$Speaker))` California English speakers. The selection criteria excluded any person who lived outside of the fieldsite of interest for more than 3(?) years between the ages of 8(?) and 18, or for more than 6(?) years after 18. The field sites, with year of fieldwork, were Merced (2010), Redding (2011), Bakersfield (2012), Sacramento (2014), Salinas (2016), Humboldt Bay (2017), and Redlands (2018).
+
+The wordlists were force aligned using the Penn Forced Aligner (citation), extracted by automated script (see [extract_vowels_cj.praat](../praat_scripts/extract_vowels_cj.praat)), and analyzed using PraatSauce (citation). Vowels were normalized using the Nearey method (citation) before analysis.
+
+## Results
+The sample used in this analysis comprises `r length(unique(data.clean.normed.demo$Speaker))` speakers from `r length(unique(data.clean.sauce.demo$site))` field sites. 
+```{r fieldsite_table, echo=FALSE}
+print("Number of participants per fieldsite:")
+table(distinct(data.clean.sauce.demo,site,first,last,.keep_all=TRUE)$site)
+```
