@@ -54,3 +54,29 @@ plot_vangles <- function(vangle,n=5) {
     scale_y_reverse(position = "right") + 
     scale_x_reverse(position = "top")
 }
+
+.vs_testu <- function(f1vec,f2vec,posvec,i) {
+  uv = c(-1,0,'unit')
+  return(as.numeric(uv[i]))
+}
+
+.vs_test2 <- function(f1vec,f2vec,posvec,i) {
+  li = which(posvec=="low")
+  hi = which(posvec=="high")
+  anchor = c(f2vec[li],f1vec[li])
+  anchor2 = c(f2vec[hi],f1vec[hi])
+  a2 = anchor2 - anchor
+  a2 = c(a2,'a2')
+  return(as.numeric(a2[i]))
+}
+
+.vs_testt <- function(f1vec,f2vec,posvec,i) {
+  li = which(posvec=="low")
+  hi = which(posvec=="high")
+  ti = setdiff(c(1,2,3),c(li,hi))
+  anchor = c(f2vec[li],f1vec[li])
+  target = c(f2vec[ti],f1vec[ti])
+  t = target - anchor
+  t = c(t,'target')
+  return(as.numeric(t[i]))
+}

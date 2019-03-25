@@ -2,6 +2,8 @@
 #   in some meaningful sense. It serves largely as an archive of how particular
 #   plots were made while also making modifications and reproductions easy.
 
+source('./r_scripts/analysis_functions.r')
+
 vec_plot_data = data.v_angles%>%
   distinct(Speaker,pos,.keep_all = TRUE)%>%
   group_by(Speaker) %>%
@@ -62,29 +64,5 @@ spline_plot = ggplot() +
   labs(y="Predicted Formant (Hz)",x="Time normalized index",title="8 Mar 2019")
 ggsave('SmoothingSpline.png',spline_plot,device=png(),'./plots')
 
-.vs_testu <- function(f1vec,f2vec,posvec,i) {
-  uv = c(-1,0,'unit')
-  return(as.numeric(uv[i]))
-}
 
-.vs_test2 <- function(f1vec,f2vec,posvec,i) {
-  li = which(posvec=="low")
-  hi = which(posvec=="high")
-  anchor = c(f2vec[li],f1vec[li])
-  anchor2 = c(f2vec[hi],f1vec[hi])
-  a2 = anchor2 - anchor
-  a2 = c(a2,'a2')
-  return(as.numeric(a2[i]))
-}
-
-.vs_testt <- function(f1vec,f2vec,posvec,i) {
-  li = which(posvec=="low")
-  hi = which(posvec=="high")
-  ti = setdiff(c(1,2,3),c(li,hi))
-  anchor = c(f2vec[li],f1vec[li])
-  target = c(f2vec[ti],f1vec[ti])
-  t = target - anchor
-  t = c(t,'target')
-  return(as.numeric(t[i]))
-}
 
