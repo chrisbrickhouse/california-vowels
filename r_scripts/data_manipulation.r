@@ -91,6 +91,18 @@ make_norm <- function(sauce,rm.na=TRUE) {
   return(nrm)
 }
 
+merge_demo <- function(nodemo,cleansauce) {
+  demoList = cleansauce %>%
+    mutate(
+      Speaker = paste(site,last,first,sep="_")
+    ) %>%
+    select(Speaker,gender,birthyear,race,sexual_orientation,education,town_orientation,politics) %>%
+    distinct()
+  rTbl = left_join(nodemo,demoList) %>%
+    separate(Speaker,c("site","last","first"),sep="_")
+  return(rTbl)
+}
+
 .get_class <- function(segment,token,debug="") {
   class_dict = c(
     make = c(

@@ -6,12 +6,10 @@ source('./r_scripts/analysis_functions.r')
 
 
 # Load Data
-data.sauce = load_sauce('./data/all/full_data.csv')
-data.saucedemo = load_sauce('./data/full_data_with_demo.csv')
-data.normed = make_norm(data.sauce)
-data.cleansauce = clean_sauce(data.sauce)
-data.cleansaucedemo = clean_sauce(data.saucedemo,T)
-data.cleannormed = clean_normed(data.normed)
+data.sauce.demo = load_sauce('./data/full_data_with_demo.csv')
+data.normed = make_norm(data.sauce.demo)
+data.clean.sauce.demo = clean_sauce(data.sauce.demo,T)
+data.clean.normed.demo = merge_demo(data.normed,data.clean.sauce.demo)
 
 data.formant = load_data(paths)
 data.formant$site = as.factor(data.formant$site)
