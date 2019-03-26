@@ -14,6 +14,11 @@ compute_vspace <- function(vangle) {
     distinct(Speaker,pos,.keep_all = TRUE)%>%
     group_by(Speaker) %>%
     summarize(cos_ratio = .vspace_shape(nF1,nF2,pos))
+  demo = vangle %>%
+    select(Speaker,gender,birthyear,race,sexual_orientation,education,town_orientation,politics) %>%
+    distinct()
+  a = left_join(a,demo) %>%
+    separate(Speaker,c("site","last","first"),sep = "_",remove = FALSE)
   return(a)
 }
 

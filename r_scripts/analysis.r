@@ -15,7 +15,7 @@ data.formant = load_data(paths)
 data.formant$site = as.factor(data.formant$site)
 data.formant$segment = as.factor(data.formant$segment)
 
-data.v_angles = vowel_angles(data.normed)
+data.v_angles = vowel_angles(data.clean.normed.demo)
 data.cosangles = compute_vspace(data.v_angles)
 plot_vangles(data.v_angles)
 

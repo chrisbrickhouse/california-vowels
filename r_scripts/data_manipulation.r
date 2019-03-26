@@ -98,8 +98,10 @@ merge_demo <- function(nodemo,cleansauce) {
     ) %>%
     select(Speaker,gender,birthyear,race,sexual_orientation,education,town_orientation,politics) %>%
     distinct()
+  demoList$gender=recode(demoList$gender, Male="male",Female="female")
+  demoList$sexual_orientation=recode(demoList$sexual_orientation, LGBT="LGBT",Bisexual="LGBT",Gay="LGBT",Homosexual="LGBT",Lesbian="LGBT",Pansexual="LGBT",straight="Straight",.default="NA")
   rTbl = left_join(nodemo,demoList) %>%
-    separate(Speaker,c("site","last","first"),sep="_")
+    separate(Speaker,c("site","last","first"),sep="_",remove=FALSE)
   return(rTbl)
 }
 
