@@ -1,8 +1,9 @@
 ---
-title: "Low-Back Merger in California English: Working Paper"
+title: 'Low-Back Merger in California English: Working Paper'
 author: "Christian Brickhouse"
-date: "March 25, 2019"
+date: "March 27, 2019"
 output:
+  pdf_document: default
   html_document: default
 ---
 
@@ -17,6 +18,13 @@ data.sauce.demo = load_sauce('./data/full_data_with_demo.csv')
 data.normed = make_norm(data.sauce.demo)
 data.clean.sauce.demo = clean_sauce(data.sauce.demo,T)
 data.clean.normed.demo = merge_demo(data.normed,data.clean.sauce.demo)
+site_labels = c(BAK="Bakersfield",
+    HUM="Humboldt",
+    RDL="Redlands",
+    SAC="Sacramento",
+    SAL="Salinas",
+    RED="Redding",
+    MER="Merced")
 ```
 
 ## Caveat
@@ -25,7 +33,7 @@ This draft represents a work in progress and therefore **you should not cite thi
 ## Methods
 Data were collected as part of the Voices of California project which conducts sociolinguistic interviews with life-long California residents. At the end of the interview, participants are asked to read a wordlist to ensure that vowels of itnerest are captured. This study analyzes that word list data from `r length(unique(data.clean.normed.demo$Speaker))` California English speakers. The selection criteria excluded any person who lived outside of the fieldsite of interest for more than 3(?) years between the ages of 8(?) and 18, or for more than 6(?) years after 18. The field sites, with year of fieldwork, were Merced (2010), Redding (2011), Bakersfield (2012), Sacramento (2014), Salinas (2016), Humboldt Bay (2017), and Redlands (2018).
 
-The wordlists were force aligned using the Penn Forced Aligner (citation), extracted by automated script (see [extract_vowels_cj.praat](../praat_scripts/extract_vowels_cj.praat)), and analyzed using PraatSauce (citation). Vowels were normalized using the Nearey method (citation) before analysis.
+The wordlists were force aligned using the Penn Forced Aligner (citation), extracted by automated script (see [extract_vowels_cj.praat](../praat_scripts/extract_vowels_cj.praat)), and analyzed using PraatSauce (citation). Each vowel was measured at 10 equidistant points providing change in values over time. Because each measurement represents one tenth of the vowel, it is time normalized and represents a position in the vowel rather than an absolute time into the vowel. For normalization purposes as well as analyses fo vowels as atemporal points, the multiple measures for each vowel were collapsed into a single measurement. This was done by taking the mean of all 10 measurements from the duration of the vowel, yielding a mean F1 and mean F2 within the vowel. These took the place of what would otherwise have been F1 and F2 measurements from the midpoint of the vowel. These means were used as the inputs to the Nearey normalization (citation) method implemented in the `library(vowels)` package.
 
 ## Results
 The sample used in this analysis comprises `r length(unique(data.clean.normed.demo$Speaker))` speakers from `r length(unique(data.clean.sauce.demo$site))` field sites. 
@@ -33,6 +41,60 @@ The sample used in this analysis comprises `r length(unique(data.clean.normed.de
 print("Number of participants per fieldsite:")
 table(distinct(data.clean.sauce.demo,site,first,last,.keep_all=TRUE)$site)
 ```
+
+### F1 and F2 space
+```{r f1f2_setup, include=FALSE}
+data.f1f2 = data.clean.normed.demo %>%
+  ungroup() %>%
+  filter(!site %in% c("MER","RED","RDL")) %>%
+  filter(Context %in% c("COT","CAUGHT")) %>%
+  select(Speaker,site,Context,nF1,nF2,gender,birthyear,race,sexual_orientation,education,town_orientation,politics) %>%
+  unite(Fs,nF1,nF2,sep="_") %>%
+  spread(Context,Fs) %>%
+  separate(COT,c("nF1_bot","nF2_bot"),sep="_",convert=TRUE) %>%
+  separate(CAUGHT,c("nF1_bought","nF2_bought"),sep="_",convert=TRUE) %>%
+  mutate(F1diff=nF1_bought-nF1_bot,F2diff=nF2_bought-nF2_bot)
+```
+Measurements of the F1 and F2 space have previously been used to argue for an apparent merger and so the data here should show similar patterns of decreasing distance between LOT and THOUGHT vowels in F1-F2 space. For each participant their normalized formant values for LOT were subtracted from the normalized formant values for THOUGHT so that the degree of overlap can be easily quanitified. If the value is 0 then they overlap each other perfectly.
+
+```{r diff_plot, message=FALSE,echo=FALSE}
+ggplot(data.f1f2)+
+  geom_hline(aes(yintercept=0))+
+  #geom_vline(aes(xintercept=0))+
+  geom_point(aes(x=birthyear,y=F1diff,color=gender))+
+  geom_smooth(aes(x=birthyear,y=F1diff,color=gender),method="lm")+
+  labs(x="Birth year", y="Thought-Lot normalized F1 difference") +
+  facet_wrap(~site,labeller = labeller(site=site_labels))
+ggplot(data.f1f2)+
+  geom_hline(aes(yintercept=0))+
+  #geom_vline(aes(xintercept=0))+
+  geom_point(aes(x=birthyear,y=F2diff,color=gender))+
+  geom_smooth(aes(x=birthyear,y=F2diff,color=gender),method="lm")+
+  labs(x="Birth year", y="Thought-Lot normalized F2 difference") +
+  facet_wrap(~site,labeller = labeller(site=site_labels))
+```
+
+In line with previous work we observe substantial similarity between LOT and THOUGHT vowels. The distance between F1 is `r mean(data.f1f2$F1diff)` in normalized formant space. The distance between F2 is `r mean(data.f1f2$F1diff)`. There is reason to consider that this is not indicative of a complete merger (i.e., not a near-merger) as both these means are significantly different from 0, however the difference may be caused by some areas which lack the merger and some that do.
+
+```{r f1model_summary,message=TRUE}
+model.f1 = lm(F1diff ~ site*gender*birthyear,data=data.f1f2)
+summary(model.f1)
+```
+In order to separate out the effects of demographic and social factors on degree of overlap, a linear model was constructed to predict the normalized F1 difference from field site, gender, and birthyear as well as their interactions. The results of the model show that younger Californians produce LOT and THOUGHT vowels closer together in the F1 dimension. There is a significant main effect of birth year such that younger Californians produce closer first formants. There is also a main effect such that speakers from Humboldt tend to produce LOT vowels higher than THOUGHT vowels. There is also a significant interaction such that the effect of birth year in Humboldt is in the direction of greater overlap over time (it is significant because Humboldt has a very positive difference, meaning their LOT vowel was higher than THOUGHT and so the effect of birth year, which would usually increase scores to bring them closer to zero needs to decrease the scores in Humboldt).
+
+```{r f2model_summary}
+model.f2 = lm(F2diff ~ site*gender*birthyear,data=data.f1f2)
+summary(model.f2)
+```
+
+Another linear model was constructed to predict the normalized F2 difference from field site, gender, and birth year. There is a main effect of site such that speakers in Humboldt have overlapping second formants and Redding speakers produce their LOT vowel much lower than speakers at other field sites (though this result should be interpreted with caution due to the very low number of speakers in that sample). There is a main effect of gender  such that men seem to have more similar second formants than do women. There is also a small effect of birth year  such that younger speakers have closer second formants. The effect of birth year however doesn't hold in Humboldt where similarity of second formants seems to be unaffected by age. There is an interaction such that younger Redding speakers seem to have closer second formants but the same caveat about sample size applies there.
+
+Gender was an important predictor in F2 distance as it interacted with a number of other predictors, so in order to better interpret those interactions a simple effects analysis was conducted.
+```{r f2model_simple}
+model.f2.simple = lm(F2diff ~ site*gender*birthyear-site,data=data.f1f2)
+summary(model.f2.simple)
+```
+The marginal interaction between Humboldt and gender seems to be driven by women who have a great deal of overlap in their second formants. The interaction between Salinas and gender on the other hand seems to be driven by men who produce more distinct second formants.
 
 ### Vowel Space Shape
 ```{r vowel_space_shape_data, include=FALSE}
@@ -82,11 +144,6 @@ ggplot(ratio_data,aes(x=cos_ratio)) +
 However because the California Vowel Shift seems to be a change in progress, this analysis should consider how the vowel space has been changing over time. The figure below shows the triangle to trapezoid ratio for a participant by their birth year, and there appears to be a trend in apparent time whereby younger participants have a more triangular vowel space. For this analysis the data was further subsetted to remove those whose birthyear was unknown and any participant with negative ratio values as they were few and (from the first figure) likely to be measurement errors. The pattern seems strongest in Bakersfield and Sacramento. Redlands looks to have an increasing trend however younger speakers there seem to have a wider envelope of variation which may indicate an interesting social patterning of the low back vowels.
 
 ```{r ratio_by_birthyear, echo=FALSE}
-site_labels = c(BAK="Bakersfield",
-    HUM="Humboldt",
-    RDL="Redlands",
-    SAC="Sacramento",
-    SAL="Salinas")
 model.cosangles.data = data.cosangles%>%
   filter(cos_ratio > 0) %>%
   filter(!is.na(birthyear)) %>%
@@ -97,3 +154,8 @@ ggplot(model.cosangles.data,aes(x=birthyear,y=cos_ratio))+
   labs(x="Birth year",y="Triangle to trapezoid ratio (higher = more triangular)")+
   facet_wrap(~site,labeller=labeller(site=site_labels))
 ```
+
+### Observations
+Given the pattern of data in both analyses it seems that over time and across California the LOT and THOUGHT vowels are moving closer together and perhaps upwards or inwards.
+
+Humboldt also seems to be a very interesting location as it appears the merger in production took place before the other field sites.
