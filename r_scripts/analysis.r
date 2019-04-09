@@ -41,10 +41,57 @@ model.cosangles = lmer(log_cos_ratio~birthyear*site+(1|gender),data=model.cosang
 table(data.cleannormed%>%select(site,Vowel))
 
 # Smoothing Spline ANOVA models
-ssdata = data.cleansauce %>%
+grandF1mean = mean(data.clean.sauce.demo$F1)
+grandF2mean = mean(data.clean.sauce.demo$F2)
+data.clean.normed.demo = data.clean.normed.demo %>%
+  mutate(hF1=nF1*grandF1mean,hF2=nF2*grandF2m)
+
+ssdata = data.clean.sauce.demo %>%
   filter(segment %in% c("AO1","AA1")) %>%
-  filter(!site %in% c("RED","RDL","MER"))
+  filter(!site %in% c("RED","MER"))
 
 m = ssmodel(F1~index*segment*site,ssdata)
 m2 = ssmodel(F2~index*segment*site,ssdata)
 m3 = ssmodel(F3~index*segment*site,ssdata)
+
+x = left_join(m$fit,m2$fit)
+ggplot(x) +
+  geom_pointrange(aes(x=Fit2,y=Fit,ymin=Fit-SE,ymax=Fit+SE,color=segment)) +
+  geom_errorbarh(aes(x=Fit2,y=Fit,xmin=Fit2-SE2,xmax=Fit2+SE2,color=segment)) +
+  facet_wrap(~site)
+
+i = seq(1,10)
+vowels = unique(ssdata$segment)
+sites = unique(ssdata$site)
+genders = unique(ssdata$gender)
+v = as.factor(vowels)
+loc = as.factor(sites)
+gen = as.factor(genders)
+ssdata$segment=as.factor(ssdata$segment)
+ssdata$site=as.factor(ssdata$site)
+ssdata$index=as.numeric(ssdata$index)
+ssdata$gender=as.factor(ssdata$gender)
+model = ssanova(F1~index*segment*site*gender,data=ssdata)
+model.predicted = expand.grid(index=i,segment=v,site=loc,gender=gen)
+model.predicted$Fit <- predict(model,newdata=model.predicted, se = T)$fit
+model.predicted$SE <- predict(model, newdata = model.predicted, se = T)$se.fit
+
+# F1-F2 analysis  separate(CAUGHT,c("nF1.bought","nF2.bough
+data.f1f2 = data.clean.normed.demo %>%
+  ungroup() %>%
+  filter(Context %in% c("COT","CAUGHT")) %>%
+  select(Speaker,site,Context,nF1,nF2,gender,birthyear,race,sexual_orientation,education,town_orientation,politics) %>%
+  unite(Fs,nF1,nF2,sep="_") %>%
+  spread(Context,Fs) %>%
+  separate(COT,c("nF1_bot","nF2_bot"),sep="_",convert=TRUE) %>%
+  separate(CAUGHT,c("nF1_bought","nF2_bought"),sep="_",convert=TRUE) %>%
+  mutate(F1diff=nF1_bought-nF1_bot,F2diff=nF2_bought-nF2_bot)
+
+model.f1 = lm(F1diff ~ site*gender*birthyear,data=data.f1f2)
+model.f1.simple = lm(F1diff ~ site*gender*birthyear-site,data=data.f1f2)
+model.f2 = lm(F2diff ~ site*gender*birthyear,data=data.f1f2)
+model.f2.simple = lm(F2diff ~ site*gender*birthyear-site,data=data.f1f2)
+###
+#
+# Demographic columns for copy and pasting
+# gender,birthyear,race,sexual_orientation,education,town_orientation,politics
