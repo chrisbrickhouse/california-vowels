@@ -13,6 +13,8 @@ setwd('../')
 library(tidyverse)
 library(vowels)  # Not actually used yet
 library(gss)
+library(lme4)
+library(dtt)
 source('./r_scripts/analysis_functions.r')
 data.sauce.demo = load_sauce('./data/full_data_with_demo.csv')
 data.normed = make_norm(data.sauce.demo)
@@ -33,7 +35,7 @@ This draft represents a work in progress and therefore **you should not cite thi
 ## Methods
 Data were collected as part of the Voices of California project which conducts sociolinguistic interviews with life-long California residents. At the end of the interview, participants are asked to read a wordlist to ensure that vowels of itnerest are captured. This study analyzes that word list data from `r length(unique(data.clean.normed.demo$Speaker))` California English speakers. The selection criteria excluded any person who lived outside of the fieldsite of interest for more than 3(?) years between the ages of 8(?) and 18, or for more than 6(?) years after 18. The field sites, with year of fieldwork, were Merced (2010), Redding (2011), Bakersfield (2012), Sacramento (2014), Salinas (2016), Humboldt Bay (2017), and Redlands (2018).
 
-The wordlists were force aligned using the Penn Forced Aligner (citation), extracted by automated script (see [extract_vowels_cj.praat](../praat_scripts/extract_vowels_cj.praat)), and analyzed using PraatSauce (citation). Each vowel was measured at 10 equidistant points providing change in values over time. Because each measurement represents one tenth of the vowel, it is time normalized and represents a position in the vowel rather than an absolute time into the vowel. For normalization purposes as well as analyses fo vowels as atemporal points, the multiple measures for each vowel were collapsed into a single measurement. This was done by taking the mean of all 10 measurements from the duration of the vowel, yielding a mean F1 and mean F2 within the vowel. These took the place of what would otherwise have been F1 and F2 measurements from the midpoint of the vowel. These means were used as the inputs to the Nearey normalization (citation) method implemented in the `library(vowels)` package.
+The wordlists were force aligned using the Penn Forced Aligner (citation), extracted by automated script (see [extract_vowels_cj.praat](../praat_scripts/extract_vowels_cj.praat)), and analyzed using PraatSauce (citation). Each vowel was measured at 10 equidistant points providing change in values over time. Because each measurement represents one tenth of the vowel, it is time normalized and represents a position in the vowel rather than an absolute time into the vowel. The multiple measures for each vowel were collapsed for normalization as well as for analyses that do not look at vowel dynamics. This was done by taking the mean of all 10 measurements from the duration of the vowel, yielding a mean F1 and mean F2 within the vowel. These took the place of what would otherwise have been F1 and F2 measurements from the midpoint of the vowel. These means were used as the inputs to the Nearey normalization (citation) method implemented in the `library(vowels)` package.
 
 ## Results
 The sample used in this analysis comprises `r length(unique(data.clean.normed.demo$Speaker))` speakers from `r length(unique(data.clean.sauce.demo$site))` field sites. 
@@ -41,6 +43,7 @@ The sample used in this analysis comprises `r length(unique(data.clean.normed.de
 print("Number of participants per fieldsite:")
 table(distinct(data.clean.sauce.demo,site,first,last,.keep_all=TRUE)$site)
 ```
+Due to measurement errors, incomplete responses, or functional limitations each individual analysis may use a subset of this data.
 
 ### F1 and F2 space
 ```{r f1f2_setup, include=FALSE}
@@ -78,13 +81,13 @@ In line with previous work we observe substantial similarity between LOT and THO
 
 ```{r f1model_summary,message=TRUE}
 model.f1 = lm(F1diff ~ site*gender*birthyear,data=data.f1f2)
-summary(model.f1)
+summary(model.f1)$coefficients
 ```
 In order to separate out the effects of demographic and social factors on degree of overlap, a linear model was constructed to predict the normalized F1 difference from field site, gender, and birthyear as well as their interactions. The results of the model show that younger Californians produce LOT and THOUGHT vowels closer together in the F1 dimension. There is a significant main effect of birth year such that younger Californians produce closer first formants. There is also a main effect such that speakers from Humboldt tend to produce LOT vowels higher than THOUGHT vowels. There is also a significant interaction such that the effect of birth year in Humboldt is in the direction of greater overlap over time (it is significant because Humboldt has a very positive difference, meaning their LOT vowel was higher than THOUGHT and so the effect of birth year, which would usually increase scores to bring them closer to zero needs to decrease the scores in Humboldt).
 
 ```{r f2model_summary}
 model.f2 = lm(F2diff ~ site*gender*birthyear,data=data.f1f2)
-summary(model.f2)
+summary(model.f2)$coefficients[,1:3]
 ```
 
 Another linear model was constructed to predict the normalized F2 difference from field site, gender, and birth year. There is a main effect of site such that speakers in Humboldt have overlapping second formants and Redding speakers produce their LOT vowel much lower than speakers at other field sites (though this result should be interpreted with caution due to the very low number of speakers in that sample). There is a main effect of gender  such that men seem to have more similar second formants than do women. There is also a small effect of birth year  such that younger speakers have closer second formants. The effect of birth year however doesn't hold in Humboldt where similarity of second formants seems to be unaffected by age. There is an interaction such that younger Redding speakers seem to have closer second formants but the same caveat about sample size applies there.
@@ -92,9 +95,79 @@ Another linear model was constructed to predict the normalized F2 difference fro
 Gender was an important predictor in F2 distance as it interacted with a number of other predictors, so in order to better interpret those interactions a simple effects analysis was conducted.
 ```{r f2model_simple}
 model.f2.simple = lm(F2diff ~ site*gender*birthyear-site,data=data.f1f2)
-summary(model.f2.simple)
+summary(model.f2.simple)$coefficients[,1:3]
 ```
 The marginal interaction between Humboldt and gender seems to be driven by women who have a great deal of overlap in their second formants. The interaction between Salinas and gender on the other hand seems to be driven by men who produce more distinct second formants.
+
+### Vowel Dynamics
+```{r include=FALSE}
+F1_dct_coeffs = get_dct(data.clean.sauce.demo,"F1")%>%
+  filter(!site %in% c("MER","RED"))%>%
+  drop_na(DCT1,DCT2,DCT3,DCT4,birthyear,site)%>%
+  unite(id,site,last,first,remove = FALSE)
+F2_dct_coeffs = get_dct(data.clean.sauce.demo,"F2")%>%
+  filter(!site %in% c("MER","RED"))%>%
+  drop_na(DCT1,DCT2,DCT3,DCT4,birthyear,site)%>%
+  unite(id,site,last,first,remove = FALSE)
+f1_dct_preds = dct_predictions(data.clean.sauce.demo,"F1",4)
+f2_dct_preds = dct_predictions(data.clean.sauce.demo,"F2",4)
+```
+Vowels are rarely static over time, and the pattern of movement during articulation can serve as a cue by which speakers distinguish vowel phonemes. Previous work has found that the F1 and F2 values of LOT and THOUGHT vowel midpoints are converging, and the previous analysis replicated this finding using averages across the vowels. Despite this apparent overlap it may be possible that the two vowel classes are still separate and distinguished by their dynamics. To test this hypothesis the differences in F1 and F2 paths between LOT and THOUGHT vowels were compared.
+
+```{r vowel_dynamics_plot, echo=FALSE}
+ggplot(f1_dct_preds%>%filter(!site %in% c("RED","MER"))) +
+  geom_smooth(aes(x=index,y=F1,color=token,linetype="Observed"),method = 'loess')+
+  geom_smooth(aes(x=index,y=pF1,color=token,linetype="Predicted"),method = 'loess',se=F)+
+  labs(x="Index", y="F1 (Hz)") +
+  facet_wrap(~site,labeller = labeller(site=site_labels))
+ggplot(f2_dct_preds%>%filter(!site %in% c("RED","MER"))) +
+  geom_smooth(aes(x=index,y=F2,color=token,linetype="Observed"),method = 'loess')+
+  geom_smooth(aes(x=index,y=pF2,color=token,linetype="Predicted"),method = 'loess',se=F)+
+  labs(x="Index", y="F2 (Hz)") +
+  facet_wrap(~site,labeller = labeller(site=site_labels))
+```
+
+In order to analyze the differences in vowel dynamics the trajectories of each speaker's vowels were modelled using a discrete cosine transform (DCT). The trajectory over time can be conceptualized as a wave, and this wave can be described by the superposition of multiple simple waves. These trajectories then, instead of being represented by a series of measurements, can be represented by the amplitudes of each of those simple waves. The DCT applies this process using cosine waves and provides a number of coefficients which represent the amplitudes of these waves. By using the DCT the representaionts of vowel trajectories can be reduced from 10 point measurements to a few coefficients.
+
+```{r dct_models, include=FALSE}
+F1_dct_coeffs$token = as.numeric(as.factor(F1_dct_coeffs$token))-1
+F1_dct_coeffs$DCT1 = center(F1_dct_coeffs$DCT1)
+F1_dct_coeffs$DCT2 = center(F1_dct_coeffs$DCT2)
+F1_dct_coeffs$DCT3 = center(F1_dct_coeffs$DCT3)
+F1_dct_coeffs$DCT4 = center(F1_dct_coeffs$DCT4)
+F1_dct_coeffs$birthyear = center(F1_dct_coeffs$birthyear)
+
+F2_dct_coeffs$token = as.numeric(as.factor(F2_dct_coeffs$token))-1
+F2_dct_coeffs$DCT1 = center(F2_dct_coeffs$DCT1)
+F2_dct_coeffs$DCT2 = center(F2_dct_coeffs$DCT2)
+F2_dct_coeffs$DCT3 = center(F2_dct_coeffs$DCT3)
+F2_dct_coeffs$DCT4 = center(F2_dct_coeffs$DCT4)
+F2_dct_coeffs$birthyear = center(F2_dct_coeffs$birthyear)
+```
+
+To test the hypothesis that vowel dynamics are used to distinguish between LOT and THOUGHT vowels, a logistic regression was fitted to the data predicting the token from the first 4 DCT coefficients. As the model predicts whether the token is LOT or THOUGHT, a significant predictor is able to reliably distinguish between the vowels. The predictors of the model were the first four DCT coefficients as well as their interactions with gender, birthyear, and field site. While the model allowed a four way interaction between the three social variables and a given DCT coefficient, it did not consider the main effects of or interactions between the social variables in predicting the token.
+
+```{r dct_f1_results}
+model.dct.F1 = glm(token~(DCT1+DCT2+DCT3+DCT4)*(birthyear*gender*site)-(birthyear*gender*site),
+                   data=F1_dct_coeffs,
+                   family="binomial")
+summary(model.dct.F1)$coefficients[,1:3]
+```
+
+There is no general distinction between LOT and THOUGHT in height movement, however there are a number of significant interactions. To compensate for multiple comparisons, the alpha level for these analyses has been Bonferroni corrected to a 0.025 level and so a number of trends below the 0.05 level are not considered significant here. The interaction between gender and the first DCT coefficient is significant to the 0.025 level and shows that men have a lower average first formant frequency. This effect is easily explained by the use of non-normalized vowel formants in this analysis due to men, in general, having lower formant frequencies. Additionally, there are significant interactions between the second DCT coefficient and field site. To probe these interactions further, the data from Humboldt, Redlands, and Bakersfield were analyzed separately. It appears that the interactions are driven by no difference in vowel dynamics for Redlands speakers, but differences for speakers in Bakersfield and Humboldt.
+
+```{r dct_f2_results}
+model.dct.F2 = glm(token~(DCT1+DCT2+DCT3+DCT4)*(birthyear*gender*site)-(birthyear*gender*site),
+                   data=F2_dct_coeffs,
+                   family="binomial")
+summary(model.dct.F2)$coefficients[,1:3]
+```
+
+The distinction between cot and caught however does seem to be generally maintained in the F2 dimension by a main effect of the fourth DCT coefficient. This coefficient represents deviations from the average formant value at high frequency wavelengths and especially small deviations towards the ends of the trajectory. This can be seen in the plot above. The F2 trajectories, across field sites, seem to diverge about half way through the vowel. There also appears to be an effect of gender on the trajectories of LOT and THOUGHT vowels as demonstrated by the interaction between gender and the third DCT coefficient. This interaction appears to be driven by  men having greater movement in their trajectories for THOUGHT tokens compared to women. This effect seems to not be true of Sacramento however, as the three way interaction between the third DCT coefficient, gender, and field site counteracts the effect of the coefficient and gender itneraction.
+
+Given this analysis two possibilities present themselves: the LOT-THOUGHT merger is in fact a near merger or a phonological distinction is maintained by differences in vowel trajectories. The differences between these two possibilities can be resolved through a study of Californians' abilities to perceptually distinguish between these tokens when systematically manipulated by trajectory. If participants in this study are able to accurately distinguish between LOT and THOUGHT tokens based upon vowel trajectory then this would be evidence against the heretofore hypothesized merger.
+
+This also represents an advantage of using the DCT for analyzing vowel trajectories as synthetic vowels can be created based upon the distributions observed. As the DCT has a known inverse function, the parameters found here can be used to create vowels with formant patterns at points of interest in the distribution. For example tokens in the tail of the distribution, which empirically are rare, can be created in great number to increase statistical power. Similarly, in areas where the distributions overlap, vowels at intervals not attested in the data can be synthesized to investigate in a more controlled fashion the point at which vowel identification begins to shift (should these be perceived as different vowels).
 
 ### Vowel Space Shape
 ```{r vowel_space_shape_data, include=FALSE}

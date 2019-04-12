@@ -19,7 +19,7 @@ dct_predictions <- function(sauce, stat, n=5,filter_val=0.0) {
       "7"=paste(`7`,fit7,sep="_"),
       "8"=paste(`8`,fit8,sep="_"),
       "9"=paste(`9`,fit9,sep="_"),
-      "10"=paste(`10`,fit10,sep="_"),
+      "10"=paste(`10`,fit10,sep="_")
     )%>%
     gather("index","val",5:14,convert=TRUE) %>%
     select(site,first,last,token,index,val) %>%
@@ -30,22 +30,23 @@ dct_predictions <- function(sauce, stat, n=5,filter_val=0.0) {
   return(dct_data)
 }
 
-get_dct <- function(sauce) {
+get_dct <- function(sauce,stat) {
   dct_data = sauce %>%
     mutate(token=tolower(token))%>%
     filter(token %in% c("cot","caught")) %>%
+    select(site,last,first,token,target=one_of(stat))%>%
     group_by(site,last,first,token) %>%
     summarize(
-      DCT1=dct(F1)[1],
-      DCT2=dct(F1)[2],
-      DCT3=dct(F1)[3],
-      DCT4=dct(F1)[4],
-      DCT5=dct(F1)[5],
-      DCT6=dct(F1)[6],
-      DCT7=dct(F1)[7],
-      DCT8=dct(F1)[8],
-      DCT9=dct(F1)[9],
-      DCT10=dct(F1)[10]
+      DCT1=dct(target)[1],
+      DCT2=dct(target)[2],
+      DCT3=dct(target)[3],
+      DCT4=dct(target)[4],
+      DCT5=dct(target)[5],
+      DCT6=dct(target)[6],
+      DCT7=dct(target)[7],
+      DCT8=dct(target)[8],
+      DCT9=dct(target)[9],
+      DCT10=dct(target)[10]
     )
   demo = .get_demo(sauce)
   dct_data = left_join(dct_data,demo)
@@ -67,6 +68,13 @@ get_dct <- function(sauce) {
       politics
     ) %>%
     distinct()
+    
+  demo$gender=recode(demo$gender,
+           Female="female",
+           female="female",
+           Male="male",
+           male="male",
+           .default=NA_character_)
   return(demo)
 }
 
@@ -81,6 +89,4 @@ get_dct <- function(sauce) {
 #  geom_smooth(aes(x=index,y=F2,color=token,linetype="Observed"))+
 #  geom_smooth(aes(x=index,y=pF2,color=token,linetype="Predicted"))+
 #  facet_wrap(~site)
-
-xx = apply()
 

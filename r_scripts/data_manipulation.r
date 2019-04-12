@@ -348,3 +348,11 @@ clean_normed <- function(normed, gl=FALSE) {
   }
   return(cn)
 }
+
+center <- function(x) {
+  x = as.numeric(x)
+  m = mean(x)
+  o = sd(x)
+  x = (x-m)/o
+  return(x)
+}

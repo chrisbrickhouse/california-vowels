@@ -3,6 +3,7 @@ library(tidyverse)
 library(vowels)  # Not actually used yet
 library(gss)
 library(lme4)
+library(dtt)
 source('./r_scripts/analysis_functions.r')
 
 
@@ -95,3 +96,10 @@ model.f2.simple = lm(F2diff ~ site*gender*birthyear-site,data=data.f1f2)
 #
 # Demographic columns for copy and pasting
 # gender,birthyear,race,sexual_orientation,education,town_orientation,politics
+
+###
+# DCT analysis
+data.dct.B3 = get_dct(data.clean.sauce.demo,"B3") %>% unite(id,site,last,first,sep="_",remove=FALSE)
+unique(data.dct.F1$gender)
+a = lmer(DCT2~token*site*gender*birthyear+(1|id),data=data.dct.B3)
+summary(a)
