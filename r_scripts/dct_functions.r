@@ -78,6 +78,14 @@ get_dct <- function(sauce,stat) {
   return(demo)
 }
 
+center <- function(x) {
+  x = as.numeric(x)
+  m = mean(x)
+  o = sd(x)
+  x = (x-m)/o
+  return(x)
+}
+
 .dct_fit <- function(s,n=5) {
   a = dct(s)
   a = as.numeric(c(a[1:n],rep(0,10-n)))

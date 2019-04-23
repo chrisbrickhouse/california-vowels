@@ -64,5 +64,63 @@ spline_plot = ggplot() +
   labs(y="Predicted Formant (Hz)",x="Time normalized index",title="8 Mar 2019")
 ggsave('SmoothingSpline.png',spline_plot,device=png(),'./plots')
 
+# DCT elbow analysis
+errlist = data.frame(index=NA,correlation=NA)
+####
+n=10
+x = dct_predictions(data.clean.sauce.demo,"F1",n)%>%mutate(diff=pF1-F1)%>%select(diff)%>%drop_na()
+sse = sum(x**2)
+errlist = rbind(errlist,c(n,sse))
+####
+# Run the above block for values of n from 1 to 10
+errlist = errlist%>%drop_na()
+p1 = ggplot(errlist,aes(x=index,y=correlation))+
+  geom_point()+
+  geom_line()+
+  labs(x="",y="Sum of Squared Errors")
 
 
+secondlist = data.frame(index=NA,correlation=NA)
+####
+i=9
+x = errlist$correlation[i+1] + errlist$correlation[i-1] - 2 * errlist$correlation[i]
+secondlist = rbind(secondlist,c(i,x))
+####
+# Run the above block for values of i from 2 to 9
+p2 = ggplot(secondlist,aes(x=index,y=abs(correlation)))+
+  geom_point()+
+  geom_line()+
+  labs(x="Number of DCT coefficients",y="Estimated Second Derivative")+
+  xlim(c(1,10))
+require(gridExtra)
+grid.arrange(p1,p2)
+
+errlist = data.frame(index=NA,correlation=NA)
+####
+n=10
+x = dct_predictions(data.clean.sauce.demo,"F2",n)%>%mutate(diff=pF2-F2)%>%select(diff)%>%drop_na()
+sse = sum(x**2)
+errlist = rbind(errlist,c(n,sse))
+####
+# Run the above block for values of n from 1 to 10
+errlist = errlist%>%drop_na()
+p1 = ggplot(errlist,aes(x=index,y=correlation))+
+  geom_point()+
+  geom_line()+
+  labs(x="",y="Sum of Squared Errors")
+
+
+secondlist = data.frame(index=NA,correlation=NA)
+####
+x=2:9
+y = errlist$correlation[i+1] + errlist$correlation[i-1] - 2 * errlist$correlation[i]
+secondlist = data.frame(index=x,fdp=y)
+####
+# Run the above block for values of i from 2 to 9
+p2 = ggplot(secondlist,aes(x=index,y=abs(fdb)))+
+  geom_point()+
+  geom_line()+
+  labs(x="Number of DCT coefficients",y="Estimated Second Derivative")+
+  xlim(c(1,10))
+require(gridExtra)
+grid.arrange(p1,p2)
