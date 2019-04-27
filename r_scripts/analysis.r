@@ -150,6 +150,91 @@ model.dct.F2 = glm(token~(cDCT1*cDCT2*cDCT3)*(cbirthyear+cgender),
                    family="binomial")
 summary(model.dct.F2)
 
+# Example graphs
+####
+dct_example_vec = c(rnorm(4,0,5),0,0,0,0,0,0)
+dct_example_vec[4] = 1
+base_track = dct(dct_example_vec,inverted = T)
+DCT1_plot_data = data.frame(x=1:10,base=base_track)
+DCT1_example = dct_example_vec
+DCT1_example[1] = -3
+DCT1_plot_data$a = dct(DCT1_example,inverted = T)
+DCT1_example[1] = 0
+DCT1_plot_data$b = dct(DCT1_example,inverted = T)
+DCT1_example[1] = 2
+DCT1_plot_data$c = dct(DCT1_example,inverted = T)
+DCT1_example[1] = 10
+DCT1_plot_data$d = dct(DCT1_example,inverted = T)
+p1 = ggplot(DCT1_plot_data,aes(x=x))+
+  geom_smooth(se=F,aes(y=base_track,color="Base"))+
+  geom_smooth(se=F,aes(y=a,color="-3"))+
+  geom_smooth(se=F,aes(y=b,color="0"))+
+  geom_smooth(se=F,aes(y=c,color="2"))+
+  geom_smooth(se=F,aes(y=d,color="10"))+
+  labs(y="",x="Index",color="DCT1")+
+  scale_y_continuous(limits = c(-4, 4))
+
+base_track = dct(dct_example_vec,inverted = T)
+DCT2_plot_data = data.frame(x=1:10,base=base_track)
+DCT2_example = dct_example_vec
+DCT2_example[2] = -3
+DCT2_plot_data$a = dct(DCT2_example,inverted = T)
+DCT2_example[2] = 0
+DCT2_plot_data$b = dct(DCT2_example,inverted = T)
+DCT2_example[2] = 2
+DCT2_plot_data$c = dct(DCT2_example,inverted = T)
+DCT2_example[2] = 10
+DCT2_plot_data$d = dct(DCT2_example,inverted = T)
+p2 = ggplot(DCT2_plot_data,aes(x=x))+
+  geom_smooth(se=F,aes(y=base_track,color="Base"))+
+  geom_smooth(se=F,aes(y=a,color="-3"))+
+  geom_smooth(se=F,aes(y=b,color="0"))+
+  geom_smooth(se=F,aes(y=c,color="2"))+
+  geom_smooth(se=F,aes(y=d,color="10"))+
+  labs(y="",x="Index",color="DCT2")+
+  scale_y_continuous(limits = c(-4, 4))
+
+base_track = dct(dct_example_vec,inverted = T)
+DCT3_plot_data = data.frame(x=1:10,base=base_track)
+DCT3_example = dct_example_vec
+DCT3_example[3] = -3
+DCT3_plot_data$a = dct(DCT3_example,inverted = T)
+DCT3_example[3] = 0
+DCT3_plot_data$b = dct(DCT3_example,inverted = T)
+DCT3_example[3] = 2
+DCT3_plot_data$c = dct(DCT3_example,inverted = T)
+DCT3_example[3] = 10
+DCT3_plot_data$d = dct(DCT3_example,inverted = T)
+p3 = ggplot(DCT3_plot_data,aes(x=x))+
+  geom_smooth(se=F,aes(y=base_track,color="Base"))+
+  geom_smooth(se=F,aes(y=a,color="-3"))+
+  geom_smooth(se=F,aes(y=b,color="0"))+
+  geom_smooth(se=F,aes(y=c,color="2"))+
+  geom_smooth(se=F,aes(y=d,color="10"))+
+  labs(y="",x="Index",color="DCT3") +
+  scale_y_continuous(limits = c(-4, 4))
+
+DCT4_plot_data = data.frame(x=1:10,base=base_track)
+DCT4_example = dct_example_vec
+DCT4_example[4] = -3
+DCT4_plot_data$a = dct(DCT4_example,inverted = T)
+DCT4_example[4] = 0
+DCT4_plot_data$b = dct(DCT4_example,inverted = T)
+DCT4_example[4] = 2
+DCT4_plot_data$c = dct(DCT4_example,inverted = T)
+DCT4_example[4] = 10
+DCT4_plot_data$d = dct(DCT4_example,inverted = T)
+p4 = ggplot(DCT4_plot_data,aes(x=x,xmin))+
+  geom_smooth(se=F,aes(y=base_track,color="Base"))+
+  geom_smooth(se=F,aes(y=a,color="-3"))+
+  geom_smooth(se=F,aes(y=b,color="0"))+
+  geom_smooth(se=F,aes(y=c,color="2"))+
+  geom_smooth(se=F,aes(y=d,color="10"))+
+  labs(y="",x="Index",color="DCT4")+
+  scale_y_continuous(limits = c(-4, 4))
+
+grid.arrange(p1,p2,p3,p4)
+
 ###
 # Length
 ###
