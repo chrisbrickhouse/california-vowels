@@ -375,7 +375,6 @@ p2=ggplot(f2_dct_preds%>%filter(!site %in% c("RED","MER"))) +
   labs(x="Index", y="F2 (Hz)") +
   facet_wrap(~age_bin)
 grid.arrange(p1,p2)
->>>>>>> 9d63f1d
 
 ###
 # Length
@@ -465,6 +464,7 @@ data.dur$ctok = as.numeric(as.factor(data.dur$token)) - mean(as.numeric(as.facto
 data.dur$cseg = as.numeric(as.factor(data.dur$segment)) - mean(as.numeric(as.factor(data.dur$segment)))
 data.dur$csite = as.numeric(as.factor(data.dur$site)) - mean(as.numeric(as.factor(data.dur$site)))
 data.dur$cbirthyear = as.numeric(data.dur$birthyear) - mean(as.numeric(data.dur$birthyear))
+data.dur$cgender = as.numeric(as.factor(data.dur$gender)) - mean(as.numeric(as.factor(data.dur$gender)))
 model.lmer.logdur = lmer(logdur~ctok*cgender*cbirthyear+(1|csite)+(1|id),data=data.dur)
 model.lmer.logdur.noRDL = lmer(logdur~ctok*cgender*cbirthyear+(1|csite)+(1|id),data=data.dur%>%filter(site!="RDL"))
 model.lmer.logdur.bak = lmer(logdur~ctok*cgender*cbirthyear+(1|id),data=data.dur%>%filter(site=="BAK"))
