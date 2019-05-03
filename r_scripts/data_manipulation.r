@@ -46,7 +46,7 @@ bind_rec <- function(var, i=1 , target=0) {
 
 load_sauce <- function(fname=FALSE) {
   if (fname != FALSE) {
-    sauce = read_csv(fname)
+    sauce = read_csv(fname,col_types=cols('Sex (up to 2018) Gender (2019-)'=col_character(),"Sexual orientation"=col_character()))
   } else {
     a = read_csv('./data/all/spectral_measures.txt')
     b = read_csv('./data/all/spectral_measures_pt2.txt')
@@ -66,12 +66,12 @@ make_norm <- function(sauce,rm.na=TRUE) {
     group_by(var2,var3,Label) %>%
     mutate(
       speaker_id=paste(var1,var2,var3,sep="_"),
-      segment=.get_class(Label,var6)) %>%
+      segment=.get_class(Label,tolower(var6))) %>%
     ungroup()%>%
     group_by(speaker_id,segment)%>%
-    mutate(context=var6,
-      F1=mean(F1),
-      F2=mean(F2),
+    mutate(context=tolower(var6),
+      F1=mean(F1,na.rm=T),
+      F2=mean(F2,na.rm=T),
       F3=mean(F3),
       F1_glide=as.numeric(NA),
       F2_glide=as.numeric(NA),
@@ -205,7 +205,8 @@ merge_demo <- function(nodemo,cleansauce) {
       EY2 = "BAIT"
     ),
     cot = c(
-      AA1 = "BOT"
+      AA1 = "BOT",
+      AO1 = "BOT" # Even if FAVE thinks it's BOUGHT, code it as BOT
     ),
     fill = c(
       IH1 = "PILL"
@@ -256,7 +257,8 @@ merge_demo <- function(nodemo,cleansauce) {
       UH1 = "PULL"
     ),
     caught = c(
-      AO1 = "BOUGHT"
+      AO1 = "BOUGHT",
+      AA1 = "BOUGHT" # Even if FAVE thinks it's a LOT vowel, code as BOUGHT
     ),
     sat = c(
       AE1 = "BAT"
@@ -269,11 +271,6 @@ merge_demo <- function(nodemo,cleansauce) {
   token = trimws(tolower(token))
   segment = trimws(toupper(segment))
   class = class_dict[paste(token,segment,sep='.')]
-  if (is.na(class)) {
-    if (debug != ""){
-      print(paste(debug,token,segment))
-    }
-  }
   return(class)
 }
 
