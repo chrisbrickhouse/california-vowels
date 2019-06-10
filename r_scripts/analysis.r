@@ -16,6 +16,15 @@ data.normed = make_norm(data.sauce.demo)
 data.clean.sauce.demo = clean_sauce(data.sauce.demo,T)
 data.clean.normed.demo = merge_demo(data.normed,data.clean.sauce.demo)
 excluded.always = read_csv("./data/exclusions.csv")$id
+#Colorblind Palette
+cbbPalette <- c("#E69F00", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#56B4E9", "#000000", "#CC79A7")
+sitelabels = c(
+  SAC="Sacramento",
+  SAL="Salinas",
+  HUM="Humboldt",
+  BAK="Bakersfield",
+  RDL="Redlands"
+  )
 
 # F1-F2 analysis
 data.f1f2 = data.clean.normed.demo %>%
@@ -60,7 +69,7 @@ excluded.f1f2 = data.f1f2%>%
   filter(outlier==T)
 
 data.f1f2 = data.f1f2%>%
-  filter(outlier==F)%>%
+  #filter(outlier==F)%>%
   select(Speaker,site,Context,nF1,nF2,gender,birthyear,race,sexual_orientation,education,town_orientation,politics) %>%
   unite(Fs,nF1,nF2,sep="_") %>%
   spread(Context,Fs) %>%
@@ -81,7 +90,11 @@ model.t.F2 = t.test(data.f1f2$F2diff)
 model.t.F2
 
 model.ed = lmer(log(ed)~cgender*cbirthyear+(1|site),data=data.f1f2)
-model.ed.rdl = lm(log(ed)~cgender*cbirthyear,data=data.f1f2%>%filter(site=="RDL"))
+model.ed.bak = lm(log(ed)~cgender*cbirthyear,data=data.f1f2%>%filter(site=="BAK")) # main eff age
+model.ed.sac = lm(log(ed)~cgender*cbirthyear,data=data.f1f2%>%filter(site=="SAC")) # main eff age
+model.ed.sal = lm(log(ed)~cgender*cbirthyear,data=data.f1f2%>%filter(site=="SAL")) # no eff
+model.ed.hum = lm(log(ed)~cgender*cbirthyear,data=data.f1f2%>%filter(site=="HUM")) # main eff age
+model.ed.rdl = lm(log(ed)~cgender*cbirthyear,data=data.f1f2%>%filter(site=="RDL")) # no eff
 summary(model.ed)
 summary(model.ed.rdl)
 table(data.f1f2$site)
@@ -92,11 +105,22 @@ nrow(data.f1f2)
 #  geom_density2d()+
 #  facet_wrap(~site)
 
-ggplot(data.f1f2,aes(y=ed,x=birthyear,color=gender))+
+p1 = ggplot(data.f1f2,aes(y=ed,x=birthyear,color=gender))+
   geom_point()+
   geom_smooth(method="lm")+
-  labs(y="Euclidean distance",x="Birth year")+
-  facet_wrap(~site)
+  labs(y="Euclidean distance in formant space",x="Birth year")+
+  theme(legend.position="none")+
+  scale_colour_manual(values=cbbPalette)
+p2 = ggplot(data.f1f2,aes(y=ed,x=birthyear,color=gender))+
+  geom_point()+
+  geom_smooth(method="lm")+
+  labs(y="Euclidean distance in formant space",x="Birth year")+
+  facet_wrap(~site,labeller=labeller(site=sitelabels))+
+  theme(legend.position="bottom")+
+  scale_colour_manual(values=cbbPalette)
+plt = grid.arrange(p1,p2)
+
+ggsave('plots/f1f2dist-final.png',plt,height=8,width=6.5,units="in",dpi=150)
 
 ###
 # DCT analysis
@@ -113,7 +137,8 @@ errlist = errlist%>%drop_na()
 p1 = ggplot(errlist,aes(x=index,y=correlation))+
   geom_point()+
   geom_line()+
-  labs(x="",y="Sum of Squared Errors",title="F1")
+  labs(x="",y="Sum of Squared Errors",title="F1")+
+  scale_colour_manual(values=cbbPalette)
 plot(errlist);lines(errlist)
 
 secondlist = data.frame(index=NA,correlation=NA)
@@ -125,7 +150,8 @@ p2 = ggplot(secondlist,aes(x=index,y=abs(correlation)))+
   geom_point()+
   geom_line()+
   labs(x="Number of DCT coefficients",y="Estimated Second Derivative")+
-  xlim(c(1,10))
+  xlim(c(1,10))+
+  scale_colour_manual(values=cbbPalette)
 grid.arrange(p1,p2)
 
 # F2 Plots
@@ -140,7 +166,8 @@ errlist = errlist%>%drop_na()
 p1 = ggplot(errlist,aes(x=index,y=correlation))+
   geom_point()+
   geom_line()+
-  labs(x="",y="Sum of Squared Errors",title="F2")
+  labs(x="",y="Sum of Squared Errors",title="F2")+
+  scale_colour_manual(values=cbbPalette)
 plot(errlist);lines(errlist)
 
 secondlist = data.frame(index=NA,correlation=NA)
@@ -152,7 +179,8 @@ p2 = ggplot(secondlist,aes(x=index,y=abs(correlation)))+
   geom_point()+
   geom_line()+
   labs(x="Number of DCT coefficients",y="Estimated Second Derivative")+
-  xlim(c(1,10))
+  xlim(c(1,10))+
+  scale_colour_manual(values=cbbPalette)
 grid.arrange(p1,p2)
 
 # DCT F1 Analysis
@@ -203,7 +231,7 @@ summary(model.dct.F2)
 
 # Example graphs
 ####
-dct_example_vec = c(rnorm(4,0,5),0,0,0,0,0,0)
+dct_example_vec = c(0,0,0,0,0,0,0,0,0,0)
 dct_example_vec[4] = 1
 base_track = dct(dct_example_vec,inverted = T)
 DCT1_plot_data = data.frame(x=1:10,base=base_track)
@@ -223,7 +251,8 @@ p1 = ggplot(DCT1_plot_data,aes(x=x))+
   geom_smooth(se=F,aes(y=c,color="2"))+
   geom_smooth(se=F,aes(y=d,color="10"))+
   labs(y="",x="Index",color="DCT1")+
-  scale_y_continuous(limits = c(-4, 4))
+  scale_y_continuous(limits = c(-4, 4))+
+  scale_colour_manual(values=cbbPalette)
 
 base_track = dct(dct_example_vec,inverted = T)
 DCT2_plot_data = data.frame(x=1:10,base=base_track)
@@ -243,7 +272,8 @@ p2 = ggplot(DCT2_plot_data,aes(x=x))+
   geom_smooth(se=F,aes(y=c,color="2"))+
   geom_smooth(se=F,aes(y=d,color="10"))+
   labs(y="",x="Index",color="DCT2")+
-  scale_y_continuous(limits = c(-4, 4))
+  scale_y_continuous(limits = c(-4, 4))+
+  scale_colour_manual(values=cbbPalette)
 
 base_track = dct(dct_example_vec,inverted = T)
 DCT3_plot_data = data.frame(x=1:10,base=base_track)
@@ -263,8 +293,10 @@ p3 = ggplot(DCT3_plot_data,aes(x=x))+
   geom_smooth(se=F,aes(y=c,color="2"))+
   geom_smooth(se=F,aes(y=d,color="10"))+
   labs(y="",x="Index",color="DCT3") +
-  scale_y_continuous(limits = c(-4, 4))
+  scale_y_continuous(limits = c(-4, 4))+
+  scale_colour_manual(values=cbbPalette)
 
+base_track = dct(dct_example_vec,inverted = T)
 DCT4_plot_data = data.frame(x=1:10,base=base_track)
 DCT4_example = dct_example_vec
 DCT4_example[4] = -3
@@ -282,7 +314,8 @@ p4 = ggplot(DCT4_plot_data,aes(x=x,xmin))+
   geom_smooth(se=F,aes(y=c,color="2"))+
   geom_smooth(se=F,aes(y=d,color="10"))+
   labs(y="",x="Index",color="DCT4")+
-  scale_y_continuous(limits = c(-4, 4))
+  scale_y_continuous(limits = c(-4, 4))+
+  scale_colour_manual(values=cbbPalette)
 
 grid.arrange(p1,p2,p3,p4)
 
@@ -350,31 +383,57 @@ data.dct_dist = data.dct_dist%>%
 table(data.dct_dist$site)
 nrow(data.dct_dist)
 
-ggplot(data.dct_dist,aes(x=birthyear,y=dct_dist,color=gender))+
+p1 = ggplot(data.dct_dist,aes(x=birthyear,y=dct_dist,color=gender))+
+  geom_point()+
+  geom_smooth(method="lm")+
+  labs(x="Birth year",y="Distance in DCT space")+
+  theme(legend.position="none")+
+  scale_colour_manual(values=cbbPalette)
+p2 = ggplot(data.dct_dist,aes(x=birthyear,y=dct_dist,color=gender))+
   geom_point()+
   geom_smooth(method="lm")+
   facet_wrap(~site) +
-  labs(x="Birth year",y="Distance in DCT space")
+  labs(x="Birth year",y="Distance in DCT space")+
+  theme(legend.position="bottom")+
+  scale_colour_manual(values=cbbPalette)
+plt = grid.arrange(p1,p2)
+
+ggsave('plots/dctdist-final.png',plt,height=8,width=6.5,units="in",dpi=150)
 
 data.dct_dist$cgender = as.numeric(as.factor(data.dct_dist$gender)) - mean(as.numeric(as.factor(data.dct_dist$gender)))
 data.dct_dist$cbirthyear = as.numeric(data.dct_dist$birthyear) - mean(as.numeric(data.dct_dist$birthyear))
 model.dct_dist = glm(dct_dist~cgender*cbirthyear,data=data.dct_dist,family=gaussian(link=log))
+model.dct_dist.bak = glm(dct_dist~cgender*cbirthyear,data=data.dct_dist%>%filter(site=="BAK"),family=gaussian(link=log)) # no sig effects
+model.dct_dist.sac = glm(dct_dist~cgender*cbirthyear,data=data.dct_dist%>%filter(site=="SAC"),family=gaussian(link=log)) # marginal age
+model.dct_dist.sal = glm(dct_dist~cgender*cbirthyear,data=data.dct_dist%>%filter(site=="SAL"),family=gaussian(link=log)) # no sig effects
+model.dct_dist.hum = glm(dct_dist~cgender*cbirthyear,data=data.dct_dist%>%filter(site=="HUM"),family=gaussian(link=log)) # main age; main gender
+model.dct_dist.rdl = glm(dct_dist~cgender*cbirthyear,data=data.dct_dist%>%filter(site=="RDL"),family=gaussian(link=log)) # gender:age interaction
 summary(model.dct_dist)
+summary(model.dct_dist.rdl)
 
 f1_dct_preds = dct_predictions(data.clean.sauce.demo,"F1",4)%>%mutate(age_bin = ntile(birthyear,3))%>%drop_na(age_bin)%>%group_by(age_bin)%>%mutate(cF1=F1-mean(F1,na.rm=T),cpF1=pF1-mean(F1,na.rm=T))
 f2_dct_preds = dct_predictions(data.clean.sauce.demo,"F2",3)%>%mutate(age_bin = ntile(birthyear,3))%>%drop_na(age_bin)%>%group_by(age_bin)%>%mutate(cF2=F2-mean(F2,na.rm=T),cpF2=pF2-mean(F2,na.rm=T))
 
+ntile(f1_dct_preds$birthyear,3)
+bin_names = c(
+  "1"="1920-1957",
+  "2"="1957-1984",
+  "3"="1984-2000"
+)
+
 p1=ggplot(f1_dct_preds%>%filter(!site %in% c("RED","MER"))) +
-  geom_smooth(aes(x=index,y=cF1,color=token,linetype="Observed"),method = 'loess')+
-  geom_smooth(aes(x=index,y=cpF1,color=token,linetype="Predicted"),method = 'loess',se=F)+
-  labs(x="Index", y="F1 (Hz)") +
-  facet_wrap(~age_bin)
+  #geom_smooth(aes(x=index,y=cF1,color=token,linetype="Observed"),method = 'loess')+
+  geom_smooth(aes(x=index,y=cpF1,linetype=token,color="Predicted"),method = 'loess',se=T)+
+  labs(x="Index", y="Mean centered F1 (Hz)",linetype="Token",color="") +
+  theme(legend.position="bottom")+
+  facet_wrap(~age_bin,labeller=labeller(age_bin=bin_names))
 p2=ggplot(f2_dct_preds%>%filter(!site %in% c("RED","MER"))) +
-  geom_smooth(aes(x=index,y=cF2,color=token,linetype="Observed"),method = 'loess')+
-  geom_smooth(aes(x=index,y=cpF2,color=token,linetype="Predicted"),method = 'loess',se=F)+
-  labs(x="Index", y="F2 (Hz)") +
-  facet_wrap(~age_bin)
-grid.arrange(p1,p2)
+  #geom_smooth(aes(x=index,y=cF2,color=token,linetype="Observed"),method = 'loess')+
+  geom_smooth(aes(x=index,y=cpF2,linetype=token,color="Predicted"),method = 'loess',se=T)+
+  labs(x="Index", y="Mean centered F2 (Hz)",linetype="Token",color="") +
+  theme(legend.position="none")+
+  facet_wrap(~age_bin,labeller=labeller(age_bin=bin_names))
+grid.arrange(p2,p1)
 
 ###
 # Length
@@ -458,7 +517,7 @@ excluded.dur= excluded.dur%>%filter(is.na(corrected))
 
 table(distinct(data.dur,id,.keep_all=T)$site)
 nrow(distinct(data.dur,id,.keep_all=T))
-table(table(data.dur$id)!=2)
+table(table(data.dur$id)==2)
 
 data.dur$ctok = as.numeric(as.factor(data.dur$token)) - mean(as.numeric(as.factor(data.dur$token)))
 data.dur$cseg = as.numeric(as.factor(data.dur$segment)) - mean(as.numeric(as.factor(data.dur$segment)))
@@ -466,26 +525,54 @@ data.dur$csite = as.numeric(as.factor(data.dur$site)) - mean(as.numeric(as.facto
 data.dur$cbirthyear = as.numeric(data.dur$birthyear) - mean(as.numeric(data.dur$birthyear))
 data.dur$cgender = as.numeric(as.factor(data.dur$gender)) - mean(as.numeric(as.factor(data.dur$gender)))
 model.lmer.logdur = lmer(logdur~ctok*cgender*cbirthyear+(1|csite)+(1|id),data=data.dur)
-model.lmer.logdur.noRDL = lmer(logdur~ctok*cgender*cbirthyear+(1|csite)+(1|id),data=data.dur%>%filter(site!="RDL"))
-model.lmer.logdur.bak = lmer(logdur~ctok*cgender*cbirthyear+(1|id),data=data.dur%>%filter(site=="BAK"))
-model.lmer.logdur.hum = lmer(logdur~ctok*cgender*cbirthyear+(1|id),data=data.dur%>%filter(site=="HUM"))
-model.lmer.logdur.sac = lmer(logdur~ctok*cgender*cbirthyear+(1|id),data=data.dur%>%filter(site=="SAC"))
-model.lmer.logdur.sal = lmer(logdur~ctok*cgender*cbirthyear+(1|id),data=data.dur%>%filter(site=="SAL"))
-model.lmer.logdur.rdl = lmer(logdur~ctok*cgender*cbirthyear+(1|id),data=data.dur%>%filter(site=="RDL"))
+model.lmer.logdur.bak = lmer(logdur~ctok*cgender*cbirthyear+(1|id),data=data.dur%>%filter(site=="BAK")) # token:age interaction; marginal tok:gen
+model.lmer.logdur.sac = lmer(logdur~ctok*cgender*cbirthyear+(1|id),data=data.dur%>%filter(site=="SAC")) # main age; marginal token:age:gen
+model.lmer.logdur.sal = lmer(logdur~ctok*cgender*cbirthyear+(1|id),data=data.dur%>%filter(site=="SAL")) # no sig eff
+model.lmer.logdur.hum = lmer(logdur~ctok*cgender*cbirthyear+(1|id),data=data.dur%>%filter(site=="HUM")) # main gender; tok:gender; token:age
+model.lmer.logdur.rdl = lmer(logdur~ctok*cgender*cbirthyear+(1|id),data=data.dur%>%filter(site=="RDL")) # main age
 summary(model.lmer.logdur)
-summary(model.lmer.logdur.noRDL)
-summary(model.lmer.logdur.rdl)
+summary(model.lmer.logdur.sal)
+
+#0.09128
+#0.13932
 
 p1 = ggplot(data.dur,aes(x=birthyear,y=exp(logdur)*1000,color=token))+
   geom_point()+
   geom_smooth(method="lm")+
-  labs(x="",y="Duration (ms)")
+  labs(x="",y="Duration (ms)")+
+  theme(legend.position="none")+
+  scale_colour_manual(values=cbbPalette)
 p2 = ggplot(data.dur,aes(x=birthyear,y=exp(logdur)*1000,color=token))+
   geom_point()+
   geom_smooth(method="lm")+
   labs(x="Birth year",y="Duration (ms)")+
+  facet_wrap(~site)+
+  theme(legend.position="bottom")+
+  scale_colour_manual(values=cbbPalette)
+plt = grid.arrange(p1,p2)
+
+ggsave('plots/dur-final.png',plt,height=8,width=6.5,units="in",dpi=150)
+
+p3 = ggplot(data.dur,aes(x=gender,y=exp(logdur)*1000,fill=token))+
+  geom_boxplot()+
+  labs(x="Gender",y="Duration (ms)")+
+  theme(legend.position="bottom")+
+  scale_fill_manual(values=cbbPalette)
+ggsave('plots/durgender-final.png',p3,height=4,width=6.5,units="in",dpi=150)
+
+p4 = ggplot(data.dur%>%filter(site=="SAC"),aes(x=birthyear,y=exp(logdur)*1000,color=gender,linetype=token))+
+  geom_point()+
+  geom_smooth(method="lm")+
+  labs(x="",y="Duration (ms)",title="Sacramento")+
+  theme(legend.position="bottom")+
+  scale_colour_manual(values=cbbPalette)
+ggsave('plots/durgender-sac-final.png',p4,height=4,width=6.5,units="in",dpi=150)
+
+p5 = ggplot(data.dur,aes(x=token,y=exp(logdur)*1000,color=gender))+
+  geom_boxplot()+
+  theme(legend.position="bottom")+
+  scale_colour_manual(values=cbbPalette)+
   facet_wrap(~site)
-grid.arrange(p1,p2)
 
 #ggplot(data.dur%>%filter(site=="SAC"),aes(x=birthyear,y=exp(logdur)*1000,color=gender))+
 #  geom_point()+
